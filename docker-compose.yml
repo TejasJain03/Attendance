@@ -1,0 +1,52 @@
+services:
+  # MongoDB Service
+  mongo:
+    image: mongo:latest
+    container_name: mongo-db
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  # Server (Node.js) Service
+  server:
+    image: tejasjain03/attendance-server:latest
+    container_name: backend-server
+    env_file:
+      - ./server/.env # Specify the .env file inside the server folder
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/app # Mount local server folder to the container
+      - /app/node_modules # Prevent overwriting node_modules
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+    command: npm run start # Use nodemon for live-reloading
+
+  # Client (React + Vite) Service
+  client:
+    image: tejasjain03/attendance-client:latest
+    container_name: frontend-client
+    ports:
+      - "5173:5173" # React app served by Vite on port 5173
+    volumes:
+      - ./client:/app # Mount the local client folder to the container
+      - /app/node_modules # Prevent overwriting node_modules
+    depends_on:
+      - server
+    networks:
+      - app-network
+    command: npm run dev # Run the Vite development server
+
+# Volumes to persist MongoDB data
+volumes:
+  mongo_data:
+
+    # Networks for inter-container communication
+networks:
+  app-network:
+    driver: bridge
