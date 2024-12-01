@@ -12,7 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 
 const connectDB = async () => {
   try {
-    mongoose.connect(process.env.MONGO_URI );
+    mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to Mongo succesfully");
   } catch (err) {
     console.log("Error while connecting to database");
@@ -23,8 +23,7 @@ connectDB();
 const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
-  //   origin: 'https://eventeasee.netlify.app',
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL,
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
