@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  // baseURL: "https://event-management-api-iota.vercel.app",
-  baseURL:"http://localhost:5000/api",
+  baseURL:"https://attendance-server-psi.vercel.app/api",
   withCredentials: true,
 });
 
