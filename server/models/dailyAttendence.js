@@ -20,6 +20,14 @@ const dailyAttendanceSchema = new mongoose.Schema({
     enum: ["Present", "Absent"],
     required: true,
   },
+  attendanceType: {
+    type: String,
+    enum: ["Full Day", "Half Day", "Absent"], // Single field to store the type of attendance
+    required: function () {
+      return this.status === "Present"; // Only required if the status is "Present"
+    },
+    default: "Absent", // Default to "Absent" if status is not "Present"
+  },
 });
 
 dailyAttendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true }); // Prevent duplicate entries for the same day

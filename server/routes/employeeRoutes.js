@@ -15,4 +15,13 @@ router.get(
   catchAsync(employeeController.getEmployeeById)
 );
 
+router.put(
+  "/employees/:employeeId/add-loan",
+  catchAsync(employeeController.addLoan)
+);
+router.put(
+  "/employees/:employeeId/:loanId/deduct-loan",
+  catchAsync(employeeController.deductLoan)
+);
+
 module.exports = router;

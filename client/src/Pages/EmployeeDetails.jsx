@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "../axios";
-import SalarySummary from "../Components/SalarySummary";
 import EmployeeDetails from "../Components/Employee";
 
 const BasicCalendarExample = () => {
@@ -12,6 +11,8 @@ const BasicCalendarExample = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [attendanceType, setAttendanceType] = useState("");
+  const navigate = useNavigate(); // For navigation
 
   const years = Array.from({ length: 50 }, (_, i) => 2021 + i);
   const months = [
@@ -57,7 +58,7 @@ const BasicCalendarExample = () => {
       newDate.setMonth(months.indexOf(value));
     }
 
-    setDate(newDate);  // Update the state with the new date
+    setDate(newDate);
   };
 
   const handleDayClick = (value) => {
@@ -68,7 +69,7 @@ const BasicCalendarExample = () => {
     setIsPopupOpen(true);
   };
 
-  const handleAttendanceUpdate = async (status) => {
+  const handleAttendanceUpdate = async (status,attendanceType) => {
     const formattedDate = selectedDate.toISOString().split("T")[0];
     try {
       if (status === "Remove") {
@@ -76,10 +77,13 @@ const BasicCalendarExample = () => {
           `/employees/${employeeId}/attendance/${formattedDate}`
         );
       } else {
+        const payload = { status,attendanceType };
+
         await axios.put(
           `/employees/${employeeId}/attendance/${formattedDate}`,
-          { status }
+          payload
         );
+        console.log(payload)
       }
 
       const response = await axios.get(
@@ -107,7 +111,11 @@ const BasicCalendarExample = () => {
       <div className="flex justify-center items-center">
         {attendanceRecord ? (
           <div
-            className={`w-3 h-3 rounded-full ${attendanceRecord.status === "Present" ? "bg-green-500" : "bg-red-500"}`}
+            className={`w-3 h-3 rounded-full ${
+              attendanceRecord.status === "Present"
+                ? "bg-green-500"
+                : "bg-red-500"
+            }`}
           ></div>
         ) : (
           <div className="w-3 h-3 rounded-full bg-gray-300"></div>
@@ -119,14 +127,18 @@ const BasicCalendarExample = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center p-6">
       <div className="w-full max-w-7xl bg-white shadow-2xl rounded-3xl overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Employee Details */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 shadow-lg border border-indigo-200">
             <EmployeeDetails />
-            <h2 className="text-2xl font-bold text-indigo-800 mt-6">Attendance</h2>
+            <h2 className="text-2xl font-bold text-indigo-800 mt-6">
+              Attendance
+            </h2>
             <div className="flex space-x-4 mt-4">
               <div className="flex flex-col w-1/2">
-                <label className="font-medium text-sm mb-1 text-indigo-700">Year</label>
+                <label className="font-medium text-sm mb-1 text-indigo-700">
+                  Year
+                </label>
                 <select
                   name="year"
                   onChange={handleDropdownChange}
@@ -141,7 +153,9 @@ const BasicCalendarExample = () => {
                 </select>
               </div>
               <div className="flex flex-col w-1/2">
-                <label className="font-medium text-sm mb-1 text-indigo-700">Month</label>
+                <label className="font-medium text-sm mb-1 text-indigo-700">
+                  Month
+                </label>
                 <select
                   name="month"
                   onChange={handleDropdownChange}
@@ -156,11 +170,30 @@ const BasicCalendarExample = () => {
                 </select>
               </div>
             </div>
+            {/* Redirect Buttons */}
+            <div className="mt-8 space-y-4">
+              <button
+                onClick={() =>
+                  navigate(`/employee/salary-summary/${employeeId}`)
+                }
+                className="bg-purple-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-purple-600 transition duration-300 ease-in-out focus:outline-none"
+              >
+                View Salary Summary
+              </button>
+              <button
+                onClick={() => navigate(`/employee/loan-details/${employeeId}`)} // Navigate to Loan Details Page
+                className="bg-yellow-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none"
+              >
+                View Loan Details
+              </button>
+            </div>
           </div>
 
           {/* Calendar */}
           <div className="flex flex-col items-center bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <h2 className="text-2xl font-bold text-indigo-800 mb-4">Attendance Calendar</h2>
+            <h2 className="text-2xl font-bold text-indigo-800 mb-4">
+              Attendance Calendar
+            </h2>
             <Calendar
               onChange={(newDate) => setDate(newDate)}
               value={date}
@@ -170,49 +203,61 @@ const BasicCalendarExample = () => {
               showNavigation={false}
             />
           </div>
-
-          {/* Salary Summary */}
-          <div className="bg-gradient-to-br from-purple-50 to-pink-100 rounded-2xl p-6 shadow-lg border border-purple-200">
-            <h2 className="text-2xl font-bold text-purple-800 mb-4">Salary Summary</h2>
-            <SalarySummary date={date} />
-          </div>
         </div>
       </div>
 
       {/* Popup */}
       {isPopupOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          {/* Popup Content */}
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
             <h2 className="text-2xl font-bold mb-4 text-indigo-800">
               {selectedDate && selectedDate.toDateString()}
             </h2>
             <p className="text-gray-600 mb-6">Update Attendance Status:</p>
-            <div className="flex justify-around mb-6 space-x-4">
+
+            {/* Attendance Type Dropdown */}
+            <div className="mb-6">
+              <label
+                htmlFor="attendanceType"
+                className="block text-sm font-medium text-indigo-700 mb-2"
+              >
+                Attendance Type
+              </label>
+              <select
+                id="attendanceType"
+                className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={attendanceType}
+                onChange={(e) => setAttendanceType(e.target.value)}
+              >
+                <option value="select">Select</option>
+                <option value="Full Day">Full Day</option>
+                <option value="Half Day">Half Day</option>
+              </select>
+            </div>
+
+            <div className="flex justify-center space-x-4">
               <button
-                onClick={() => handleAttendanceUpdate("Present")}
-                className="bg-green-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                onClick={() =>
+                  handleAttendanceUpdate("Present", attendanceType)
+                }
+                className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out focus:outline-none"
               >
                 Present
               </button>
               <button
                 onClick={() => handleAttendanceUpdate("Absent")}
-                className="bg-red-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
               >
                 Absent
               </button>
               <button
                 onClick={() => handleAttendanceUpdate("Remove")}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300 ease-in-out focus:outline-none"
               >
                 Remove
               </button>
             </div>
-            <button
-              onClick={() => setIsPopupOpen(false)}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-full shadow-md hover:bg-gray-400 focus:outline-none"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}

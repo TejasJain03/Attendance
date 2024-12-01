@@ -1,7 +1,7 @@
 // controllers/attendanceController.js
 const DailyAttendance = require("../models/dailyAttendence");
-const MonthlyAttendance = require("../models/monthlyAttendance");
 const Employee = require("../models/employee");
+const moment = require("moment"); // Assuming you use moment.js for date manipulation
 
 // Get monthly attendance for an employee
 exports.getMonthlyAttendance = async (req, res) => {
@@ -13,30 +13,67 @@ exports.getMonthlyAttendance = async (req, res) => {
       month: { $eq: month }, // Filter by the specific month
     });
 
-    // If no attendance records are found, return a summary with default values
-    const totalDays = dailyAttendanceRecords.length;
-    const daysPresent = dailyAttendanceRecords.filter(
-      (record) => record.status === "Present"
-    ).length;
-    const daysAbsent = totalDays - daysPresent;
+    if (dailyAttendanceRecords.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No attendance records found for this month" });
+    }
 
-    // Create the monthly attendance summary
-    const monthlyAttendanceSummary = {
+    // Group records by week number
+    const weeks = dailyAttendanceRecords.reduce((acc, record) => {
+      const date = moment(record.date);
+      const startOfMonth = moment(date).startOf("month"); // Start of the current month
+      const weekNumber = Math.floor(date.diff(startOfMonth, "days") / 7) + 1; // Calculate the week of the month
+
+      if (!acc[weekNumber]) acc[weekNumber] = [];
+      acc[weekNumber].push(record);
+      return acc;
+    }, {});
+
+    // Prepare the weekly attendance summary
+    const weeklyAttendanceSummary = Object.keys(weeks).map((weekNumber) => {
+      const weekRecords = weeks[weekNumber];
+      const totalDays = weekRecords.length;
+
+      // Count attendance types
+      const daysPresent = weekRecords.filter(
+        (record) => record.status === "Present"
+      ).length;
+      const daysAbsent = weekRecords.filter(
+        (record) => record.status === "Absent"
+      ).length;
+
+      // Count Half and Full Days
+      const fullDays = weekRecords.filter(
+        (record) => record.attendanceType === "Full Day"
+      ).length;
+
+      const halfDays = weekRecords.filter(
+        (record) => record.attendanceType === "Half Day"
+      ).length;
+
+      return {
+        week: weekNumber,
+        totalDays,
+        fullDays,
+        halfDays,
+        daysAbsent,
+
+      };
+    });
+
+    res.status(200).json({
       employeeId,
-      dailyAttendanceRecords,
       month,
-      totalDays,
-      daysPresent,
-      daysAbsent,
-      statusSummary: daysPresent > daysAbsent ? "Good" : "Needs Improvement",
-    };
-
-    res.status(200).json(monthlyAttendanceSummary);
+      dailyAttendanceRecords,
+      weeklyAttendanceSummary,
+    });
   } catch (error) {
-    console.error("Error fetching monthly attendance:", error);
-    res.status(500).json({ message: "Error fetching monthly attendance" });
+    console.error("Error fetching weekly attendance:", error);
+    res.status(500).json({ message: "Error fetching weekly attendance" });
   }
 };
+
 
 // Calculate salary for an employee for the month
 exports.calculateSalary = async (req, res) => {
@@ -101,7 +138,7 @@ exports.calculateSalary = async (req, res) => {
 // Update or mark attendance for an employee on a specific date
 exports.updateDailyAttendance = async (req, res) => {
   const { employeeId, date } = req.params;
-  const { status } = req.body; // Make sure status is part of the body
+  const { status, attendanceType } = req.body; // Make sure status is part of the body
   const month = date.slice(0, 7);
   if (!date) {
     return res.status(400).json({ message: "Date is required" });
@@ -127,6 +164,7 @@ exports.updateDailyAttendance = async (req, res) => {
       date,
       status,
       month,
+      attendanceType,
     });
 
     await newAttendance.save();
@@ -141,76 +179,21 @@ exports.updateDailyAttendance = async (req, res) => {
 exports.removeAttendance = async (req, res) => {
   const { employeeId, date } = req.params;
 
-  try {
-    // Find the daily attendance record
-    const dailyRecord = await DailyAttendance.findOneAndDelete({
-      employeeId,
-      date,
-    });
+  // Find the daily attendance record
+  const dailyRecord = await DailyAttendance.findOneAndDelete({
+    employeeId,
+    date,
+  });
 
-    if (!dailyRecord) {
-      return res.status(404).json({ message: "Attendance record not found" });
-    }
-
-    // After removing, we need to update the monthly attendance summary
-    const month = date.slice(0, 7); // Extract month in YYYY-MM format
-
-    // Fetch all daily attendance records for the employee in the given month
-    const dailyAttendanceRecords = await DailyAttendance.find({
-      employeeId,
-      month,
-    });
-
-    if (dailyAttendanceRecords.length > 0) {
-      // Calculate the number of present and absent days
-      const totalDays = dailyAttendanceRecords.length;
-      const daysPresent = dailyAttendanceRecords.filter(
-        (record) => record.status === "Present"
-      ).length;
-      const daysAbsent = totalDays - daysPresent;
-
-      // Create the updated monthly attendance summary
-      const monthlyAttendanceSummary = {
-        employeeId,
-        month,
-        totalDays,
-        daysPresent,
-        daysAbsent,
-        statusSummary: daysPresent > daysAbsent ? "Good" : "Needs Improvement",
-      };
-
-      // Check if a monthly record already exists, and update or insert accordingly
-      let monthlyRecord = await MonthlyAttendance.findOne({
-        employeeId,
-        month,
-      });
-
-      if (monthlyRecord) {
-        // Update existing record
-        monthlyRecord.totalDays = totalDays;
-        monthlyRecord.daysPresent = daysPresent;
-        monthlyRecord.daysAbsent = daysAbsent;
-        monthlyRecord.statusSummary = monthlyAttendanceSummary.statusSummary;
-        await monthlyRecord.save();
-      } else {
-        // Create a new monthly record if it doesn't exist
-        monthlyRecord = new MonthlyAttendance(monthlyAttendanceSummary);
-        await monthlyRecord.save();
-      }
-    } else {
-      // If no daily attendance records left for this month, delete the monthly record
-      await MonthlyAttendance.findOneAndDelete({
-        employeeId,
-        month,
-      });
-    }
-
-    res.status(200).json({
-      message: "Attendance removed successfully",
-      dailyAttendance: dailyRecord,
-    });
-  } catch (error) {
-    console.error("Error removing attendance:", error);
-    res.status(500).json({ message: "Error removing attendance" });
+  if (!dailyRecord) {
+    return res.status(404).json({ message: "Attendance record not found" });
   }
+
+  // After removing, we need to update the monthly attendance summary
+  const month = date.slice(0, 7); // Extract month in YYYY-MM format
+
+  res.status(200).json({
+    message: "Attendance removed successfully",
+    dailyAttendance: dailyRecord,
+  });
 };
