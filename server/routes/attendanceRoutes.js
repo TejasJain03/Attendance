@@ -4,23 +4,31 @@ const router = express.Router();
 const attendanceController = require("../controllers/attendanceControllers");
 const catchAsync = require("../utils/catchAsync");
 
-
 // Route to get monthly attendance for an employee
 router.get(
-  "/employees/:employeeId/attendance/:month",
-  catchAsync(attendanceController.getMonthlyAttendance)
-);
-
-// Route to calculate monthly salary for an employee
-router.get(
-  "/employees/:employeeId/salary/:month",
-  catchAsync(attendanceController.calculateSalary)
+  "/employees/:employeeId/attendance/:month/:weekNumber",
+  catchAsync(attendanceController.getWeeklyAttendanceForEmployee)
 );
 
 // Route to update attendance status for a specific date
 router.put(
   "/employees/:employeeId/attendance/:date",
   catchAsync(attendanceController.updateDailyAttendance)
+);
+
+router.put(
+  "/employees/multiple-attendance/:date",
+  catchAsync(attendanceController.updateDailyAttendanceForMultipleEmployees)
+);
+
+router.get(
+  "/employees/weekly-report/:month/:weekNumber",
+  catchAsync(attendanceController.getWeeklyAttendanceForAllEmployees)
+);
+
+router.get(
+  "/employees/pay-weekly/:month/:weekNumber",
+  catchAsync(attendanceController.getWeeklyAttendanceForAllEmployees)
 );
 
 // Route to remove attendance status for a specific date

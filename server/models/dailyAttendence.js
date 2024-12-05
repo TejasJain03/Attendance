@@ -28,8 +28,14 @@ const dailyAttendanceSchema = new mongoose.Schema({
     },
     default: "Absent", // Default to "Absent" if status is not "Present"
   },
+  extraWorkHours: {
+    type: Number,
+    default: 0, // Default value is 0
+    max: 4, // Maximum value is 4
+  },
 });
 
-dailyAttendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true }); // Prevent duplicate entries for the same day
+// Prevent duplicate entries for the same day
+dailyAttendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model("DailyAttendance", dailyAttendanceSchema);

@@ -9,6 +9,7 @@ const cors = require("cors");
 const employeeRoutes = require("./routes/employeeRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const authRoutes = require("./routes/authRoutes");
+const weeklyPayRoutes=require('./routes/weeklyPayRoutes')
 
 const connectDB = async () => {
   try {
@@ -23,7 +24,8 @@ connectDB();
 const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
-  origin: "https://attendance-client-woad.vercel.app",
+  // origin: "https://attendance-client-woad.vercel.app",
+  origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
@@ -35,6 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", employeeRoutes);
 app.use("/api", attendanceRoutes);
 app.use("/api", authRoutes);
+app.use("/api", weeklyPayRoutes);
 
 app.use(cookieParser());
 

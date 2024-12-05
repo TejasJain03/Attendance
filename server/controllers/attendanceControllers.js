@@ -4,37 +4,130 @@ const Employee = require("../models/employee");
 const moment = require("moment"); // Assuming you use moment.js for date manipulation
 
 // Get monthly attendance for an employee
-exports.getMonthlyAttendance = async (req, res) => {
-  const { employeeId, month } = req.params;
+exports.getWeeklyAttendanceForEmployee = async (req, res) => {
+  let { employeeId, month, weekNumber } = req.params;
+
   try {
-    // Fetch all daily attendance records for the employee in the given month
+    // Parse month and calculate start and end dates for the requested week
+    const parsedMonth = moment(month, "YYYY-MM"); // e.g., "2024-12"
+    const startOfMonth = parsedMonth.startOf("month");
+
+    const startOfWeek = startOfMonth.clone().add((weekNumber - 1) * 7, "days");
+    const endOfWeek = startOfWeek.clone().add(6, "days");
+
+    // Fetch attendance records only for the specific employee and month
     const dailyAttendanceRecords = await DailyAttendance.find({
-      employeeId,
-      month: { $eq: month }, // Filter by the specific month
+      employeeId: employeeId, // Filter by the specific employee ID
+      month: { $eq: month },  // Filter by the specified month
     });
 
-    if (dailyAttendanceRecords.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No attendance records found for this month" });
-    }
+    // Filter records to include only those within the requested week
+    const weekRecords = dailyAttendanceRecords.filter((record) => {
+      const momentDate = moment(record.date);
+      const calculatedWeekNumber =
+        Math.floor(momentDate.diff(startOfMonth, "days") / 7) + 1;
+      return calculatedWeekNumber === parseInt(weekNumber);
+    });
 
-    // Group records by week number
-    const weeks = dailyAttendanceRecords.reduce((acc, record) => {
-      const date = moment(record.date);
-      const startOfMonth = moment(date).startOf("month"); // Start of the current month
-      const weekNumber = Math.floor(date.diff(startOfMonth, "days") / 7) + 1; // Calculate the week of the month
+    // Calculate attendance summary
+    const totalDays = weekRecords.length;
 
-      if (!acc[weekNumber]) acc[weekNumber] = [];
-      acc[weekNumber].push(record);
+    const daysPresent = weekRecords.filter(
+      (record) => record.status === "Present"
+    ).length;
+
+    const daysAbsent = weekRecords.filter(
+      (record) => record.status === "Absent"
+    ).length;
+
+    const fullDaysWithoutExtraWork = weekRecords.filter(
+      (record) =>
+        record.attendanceType === "Full Day" &&
+        record.status === "Present" &&
+        (!record.extraWorkHours || record.extraWorkHours <= 0)
+    ).length;
+
+    const fullDaysWithExtraWork = weekRecords
+      .filter(
+        (record) =>
+          record.attendanceType === "Full Day" &&
+          record.status === "Present" &&
+          record.extraWorkHours &&
+          record.extraWorkHours > 0
+      )
+      .map((record) => ({
+        date: record.date,
+        extraWorkHours: record.extraWorkHours,
+      }));
+
+    const halfDays = weekRecords.filter(
+      (record) => record.attendanceType === "Half Day"
+    ).length;
+
+    // Build the summary object
+    const attendanceSummary = {
+      employeeId,
+      totalDays,
+      daysPresent,
+      daysAbsent,
+      fullDaysWithoutExtraWork,
+      fullDaysWithExtraWork,
+      halfDays,
+    };
+
+    // Response object
+    res.status(200).json({
+      month,
+      week: weekNumber,
+      attendanceSummary,
+    });
+  } catch (error) {
+    console.error("Error fetching weekly attendance for the employee:", error);
+    res.status(500).json({ message: "Error fetching weekly attendance" });
+  }
+};
+
+
+exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
+  let { month, weekNumber } = req.params;
+
+  try {
+    // Parse month and weekNumber
+    const parsedMonth = moment(month, "YYYY-MM"); // e.g., "2024-12"
+    const startOfMonth = parsedMonth.startOf("month");
+
+    // Calculate start and end dates for the week
+    const startOfWeek = startOfMonth.clone().add((weekNumber - 1) * 7, "days");
+    const endOfWeek = startOfWeek.clone().add(6, "days");
+
+    // Fetch all daily attendance records for the given month
+    const dailyAttendanceRecords = await DailyAttendance.find({
+      month: { $eq: month },
+    });
+
+    // Group records by employeeId and week number
+    const groupedByEmployee = dailyAttendanceRecords.reduce((acc, record) => {
+      const { employeeId, date, status, attendanceType, extraWorkHours } =
+        record; // Assuming `extraWorkHours` field exists in the record
+      const momentDate = moment(date);
+      const calculatedWeekNumber =
+        Math.floor(momentDate.diff(startOfMonth, "days") / 7) + 1; // Calculate the week of the month
+
+      if (calculatedWeekNumber !== parseInt(weekNumber)) return acc; // Skip if not the requested week
+
+      if (!acc[employeeId]) acc[employeeId] = []; // Initialize employee group
+
+      acc[employeeId].push({ status, attendanceType, extraWorkHours, date });
       return acc;
     }, {});
 
-    // Prepare the weekly attendance summary
-    const weeklyAttendanceSummary = Object.keys(weeks).map((weekNumber) => {
-      const weekRecords = weeks[weekNumber];
-      const totalDays = weekRecords.length;
+    // Fetch all employees
+    const employees = await Employee.find(); // Fetch all employees
 
+    // Build the attendance summary
+    const attendanceSummary = employees.map((employee) => {
+      const weekRecords = groupedByEmployee[employee._id] || []; // Use empty array if no records
+      const totalDays = weekRecords.length;
       // Count attendance types
       const daysPresent = weekRecords.filter(
         (record) => record.status === "Present"
@@ -43,96 +136,55 @@ exports.getMonthlyAttendance = async (req, res) => {
         (record) => record.status === "Absent"
       ).length;
 
-      // Count Half and Full Days
-      const fullDays = weekRecords.filter(
-        (record) => record.attendanceType === "Full Day"
+      // Separate Full and Half Days
+      const fullDaysWithoutExtraWork = weekRecords.filter(
+        (record) =>
+          record.attendanceType === "Full Day" &&
+          record.status === "Present" &&
+          (!record.extraWorkHours || record.extraWorkHours <= 0)
       ).length;
+
+      const fullDaysWithExtraWork = weekRecords
+        .filter(
+          (record) =>
+            record.attendanceType === "Full Day" &&
+            record.status === "Present" &&
+            record.extraWorkHours &&
+            record.extraWorkHours > 0
+        )
+        .map((record) => ({
+          date: record.date,
+          extraWorkHours: record.extraWorkHours,
+        }));
 
       const halfDays = weekRecords.filter(
         (record) => record.attendanceType === "Half Day"
       ).length;
 
       return {
+        employeeId: employee._id,
+        employee, // Assuming the Employee model has a 'name' field
         week: weekNumber,
         totalDays,
-        fullDays,
+        fullDaysWithoutExtraWork,
+        fullDaysWithExtraWork,
         halfDays,
+        daysPresent,
         daysAbsent,
-
       };
     });
 
     res.status(200).json({
-      employeeId,
       month,
-      dailyAttendanceRecords,
-      weeklyAttendanceSummary,
+      week: weekNumber,
+      weekStartDate: startOfWeek.format("YYYY-MM-DD"), // Start date of the week
+      weekEndDate: endOfWeek.format("YYYY-MM-DD"), // End date of the week
+      attendanceSummary,
     });
   } catch (error) {
-    console.error("Error fetching weekly attendance:", error);
+    console.error("Error fetching weekly attendance for all employees:", error);
     res.status(500).json({ message: "Error fetching weekly attendance" });
   }
-};
-
-
-// Calculate salary for an employee for the month
-exports.calculateSalary = async (req, res) => {
-  const { employeeId, month } = req.params;
-
-  // Fetch the daily attendance records for the given employee and month
-  const dailyAttendance = await DailyAttendance.find({
-    employeeId,
-    month: month,
-  });
-  const employee = await Employee.findById(employeeId);
-
-  if (!dailyAttendance || !employee) {
-    return res
-      .status(404)
-      .json({ message: "Employee or daily attendance record not found" });
-  }
-
-  // Calculate the number of present days
-  const daysPresent = dailyAttendance.filter(
-    (day) => day.status === "Present"
-  ).length;
-
-  const MIN_DAYS_PRESENT = 22;
-  const cashPerDay = employee.paymentDivision.cash; // Cash amount per day
-  const accPerDay = employee.paymentDivision.account; // Account amount per day
-
-  let totalSalary = 0;
-  let cashSalary = 0;
-  let accountSalary = 0;
-
-  if (daysPresent < MIN_DAYS_PRESENT) {
-    // If less than 22 days present
-    totalSalary = cashPerDay * daysPresent + accPerDay * MIN_DAYS_PRESENT;
-    cashSalary = cashPerDay * daysPresent;
-    accountSalary = accPerDay * MIN_DAYS_PRESENT;
-  } else if (daysPresent === MIN_DAYS_PRESENT) {
-    // If exactly 22 days present
-    totalSalary = cashPerDay * MIN_DAYS_PRESENT + accPerDay * MIN_DAYS_PRESENT;
-    cashSalary = cashPerDay * MIN_DAYS_PRESENT;
-    accountSalary = accPerDay * MIN_DAYS_PRESENT;
-  } else {
-    // If more than 22 days present
-    const extraDays = daysPresent - MIN_DAYS_PRESENT;
-    totalSalary =
-      cashPerDay * MIN_DAYS_PRESENT +
-      accPerDay * MIN_DAYS_PRESENT +
-      (cashPerDay + accPerDay) * extraDays;
-    cashSalary = cashPerDay * MIN_DAYS_PRESENT + cashPerDay * extraDays;
-    accountSalary = accPerDay * MIN_DAYS_PRESENT + accPerDay * extraDays;
-  }
-
-  // Return the calculated salary
-  res.status(200).json({
-    totalSalary,
-    cashSalary,
-    accountSalary,
-    daysPresent,
-  });
 };
 
 // Update or mark attendance for an employee on a specific date
@@ -143,7 +195,6 @@ exports.updateDailyAttendance = async (req, res) => {
   if (!date) {
     return res.status(400).json({ message: "Date is required" });
   }
-
   try {
     // Check if the attendance date is provided and valid
     const existingAttendance = await DailyAttendance.findOne({
@@ -171,6 +222,46 @@ exports.updateDailyAttendance = async (req, res) => {
     return res.status(201).json(newAttendance);
   } catch (error) {
     console.error("Error updating attendance:", error);
+    return res.status(500).json({ message: "Error updating attendance" });
+  }
+};
+
+exports.updateDailyAttendanceForMultipleEmployees = async (req, res) => {
+  const { date } = req.params; // Date is passed as a parameter
+  const { employeeIds, status, attendanceType, extraWorkHours } = req.body; // Array of employee IDs, status, and attendanceType
+  // Validate inputs
+  if (!date || !moment(date, "YYYY-MM-DD", true).isValid()) {
+    return res
+      .status(400)
+      .json({ message: "Invalid or missing date parameter" });
+  }
+  if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Employee IDs must be an array and cannot be empty" });
+  }
+  const month = date.slice(0, 7); // Extract the month in "YYYY-MM" format
+  try {
+    // Build bulk operations for MongoDB
+    const bulkOperations = employeeIds.map((employeeId) => ({
+      updateOne: {
+        filter: { employeeId, date }, // Ensure `date` and `employeeId` match correctly
+        update: {
+          $set: { status, attendanceType, month, extraWorkHours },
+        },
+        upsert: true, // Insert a new record if no match is found
+      },
+    }));
+    // Execute bulkWrite operation
+    const result = await DailyAttendance.bulkWrite(bulkOperations);
+
+    // Respond with success message and operation result
+    return res.status(200).json({
+      message: "Attendance updated successfully for multiple employees",
+      result,
+    });
+  } catch (error) {
+    console.error("Error updating attendance for multiple employees:", error);
     return res.status(500).json({ message: "Error updating attendance" });
   }
 };

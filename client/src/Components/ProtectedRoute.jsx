@@ -6,7 +6,7 @@ const ProtectedRoute = ({ isLoggedIn, children }) => {
   if (!isLoggedIn) {
     return <Navigate to="/login" />;
   }
-  return children; // Render the protected component
+  return children; 
 };
 
 export default ProtectedRoute;

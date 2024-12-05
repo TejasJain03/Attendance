@@ -12,6 +12,10 @@ import AddEmployee from "./Pages/AddEmployee";
 import SalarySummary from "./Pages/SalarySummary";
 import LoanSummary from "./Pages/LoanSummary";
 import PaymentPage from "./Pages/PaymentPage";
+import EmployeesManagement from "./Pages/EmployeesManagement";
+import WeeklyReportPage from "./Pages/WeeklyReport";
+import MultipleAttendance from "./Pages/MultipleAttendance";
+import WeeklyPaidReportAllEmployees from "./Pages/WeeklyPaidReportAllEmployees";
 import { useEffect, useState } from "react";
 
 const App = () => {
@@ -42,10 +46,23 @@ const App = () => {
           element={<LoanSummary />}
         />
         <Route
-          path="/admin/:employeeId/:year/:month/:weekNumber"
+          path="/admin/:employeeId/:month/:weekNumber"
           element={<PaymentPage />}
         />
         <Route path="/admin/add-employee" element={<AddEmployee />} />
+        <Route
+          path="/admin/employee-management"
+          element={<EmployeesManagement />}
+        />
+        <Route
+          path="/admin/multiple-attendance"
+          element={<MultipleAttendance />}
+        />
+        <Route path="/admin/weekly-report" element={<WeeklyReportPage />} />
+        <Route
+          path="/admin/weekly-paid-report"
+          element={<WeeklyPaidReportAllEmployees />}
+        />
       </Routes>
     </Router>
   );

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import axios from "../axios";
 import { useNavigate } from "react-router-dom";
+import { ROLES } from "../constants/constants"; // Import the ROLES constant
 
 const EmployeeForm = () => {
   const [formData, setFormData] = useState({
     name: "",
+    phoneNumber: "", // Add phone number field
     perDayRate: "",
+    role: "", // Add role field
     paymentDivision: {
       account: "",
       cash: "",
@@ -70,6 +73,26 @@ const EmployeeForm = () => {
             />
           </div>
 
+          {/* Phone Number */}
+          <div>
+            <label
+              htmlFor="phoneNumber"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              Phone Number
+            </label>
+            <input
+              type="text"
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Enter phone number"
+              className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              required
+            />
+          </div>
+
           {/* Per Day Rate */}
           <div>
             <label
@@ -88,6 +111,31 @@ const EmployeeForm = () => {
               className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               required
             />
+          </div>
+
+          {/* Role Field */}
+          <div>
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              required
+            >
+              <option value="" disabled>Select a role</option>
+              {ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Payment Division */}

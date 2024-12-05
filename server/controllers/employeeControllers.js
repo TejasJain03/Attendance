@@ -3,7 +3,7 @@ const Employee = require("../models/employee");
 
 // Create a new employee
 exports.createEmployee = async (req, res) => {
-  const { name, perDayRate, paymentDivision } = req.body;
+  const { name, perDayRate, paymentDivision,role, phoneNumber } = req.body;
 
   // Parse numbers to integers
   const perDayRateInt = parseInt(perDayRate, 10);
