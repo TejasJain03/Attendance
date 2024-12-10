@@ -1,18 +1,23 @@
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "../axios";
 import { calculateSalary } from "../Components/calculateSalary";
+import { toast } from "react-toastify"; // Make sure you have react-toastify installed
 
 const PaymentPage = () => {
   const [totalAmount, setTotalAmount] = useState(0);
-  const [remainingAmount, setRemainingAmount] = useState(0); // Dynamically updates based on totalAmount
+  const [remainingAmount, setRemainingAmount] = useState(0);
   const { month, weekNumber, employeeId } = useParams();
   const [loanDetails, setLoanDetails] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentLoanIndex, setCurrentLoanIndex] = useState(null);
   const [currentLoanId, setCurrentLoanId] = useState(null);
   const [deductionAmount, setDeductionAmount] = useState("");
+  const [deductedLoans, setDeductedLoans] = useState([]);
   const { state } = useLocation();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false); // Loading state
 
   // Update remainingAmount when totalAmount changes
   useEffect(() => {
@@ -20,7 +25,7 @@ const PaymentPage = () => {
   }, [totalAmount]);
 
   useEffect(() => {
-    console.log(state);
+    setLoading(true); // Set loading to true before data fetch
     axios
       .get(`/employees/${employeeId}/get-weeklyPay/${month}`)
       .then((response) => {
@@ -28,12 +33,15 @@ const PaymentPage = () => {
           state.employeeSummary,
           response.data.totalDaysPresent
         );
-        setTotalAmount(result); // Update totalAmount
+        setTotalAmount(result);
       })
       .catch((err) => {
         console.log(err);
-      });
+        toast.error("Failed to fetch weekly pay details.");
+      })
+      .finally(() => setLoading(false)); // Set loading to false after data fetch
 
+    setLoading(true); // Set loading to true for loan details fetch
     axios
       .get(`/employees/${employeeId}`)
       .then((response) => {
@@ -41,7 +49,9 @@ const PaymentPage = () => {
       })
       .catch((error) => {
         console.error("Error fetching loan details:", error);
-      });
+        toast.error("Failed to fetch loan details.");
+      })
+      .finally(() => setLoading(false)); // Set loading to false after loan details fetch
   }, [employeeId, month, state]);
 
   const handleDeductionChange = (e) => {
@@ -57,7 +67,14 @@ const PaymentPage = () => {
       if (loan.amount >= deductionAmount) {
         loan.amount -= deductionAmount; // Update loan details
         setLoanDetails(updatedLoanDetails);
-        setRemainingAmount(remainingAmount - deductionAmount); // Deduct from remainingAmount
+        setRemainingAmount(remainingAmount - deductionAmount); // Deduct from remaining amount
+
+        // Add deduction to state
+        setDeductedLoans((prevLoans) => [
+          ...prevLoans,
+          { loanId: currentLoanId, deductedAmount: deductionAmount },
+        ]);
+
         closePopup();
       } else {
         alert("Deduction amount exceeds the loan amount!");
@@ -78,30 +95,69 @@ const PaymentPage = () => {
     setCurrentLoanId(null);
   };
 
-  const handlePay = () => {
-    const paymentDetails = {
-      totalDays: state?.employeeSummary?.totalDays || 0,
-      daysPresent: state?.employeeSummary?.daysPresent || 0,
-      daysAbsent: state?.employeeSummary?.daysAbsent || 0,
-      startDate: state?.weekStartDate || "N/A",
-      endDate: state?.weekEndDate || "N/A",
-      cash: state?.employeeSummary?.employee?.paymentDivision?.cash || 0,
-      totalAmount: totalAmount.toFixed(2),
-      amountDeducted: (totalAmount - remainingAmount).toFixed(2),
-      remainingAmount: remainingAmount.toFixed(2),
-      amountPaid: remainingAmount.toFixed(2),
-      month: month,
-      weekNumber: state?.week,
-    };
+  const handlePay = async () => {
+    setLoading(true); // Set loading to true before payment processing
+    try {
+      // Step 1: Update loan details if any deductions were made
+      if (deductedLoans.length > 0) {
+        for (const loan of deductedLoans) {
+          if (loan.deductedAmount > 0) {
+            await axios
+              .put(`/employees/${employeeId}/${loan.loanId}/deduct-loan`, {
+                amount: loan.deductedAmount, // Pass the deducted amount
+              })
+              .then((response) => {
+                console.log("Loan deduction updated:", response.data);
+                setLoanDetails(response.data.loan);
+              })
+              .catch((err) => {
+                console.error("Error updating loan deduction:", err);
+                throw new Error("Failed to update loan deduction");
+              });
+          }
+        }
+      }
 
-    axios
-      .post(`/employees/${employeeId}/weeklyPay`, paymentDetails)
-      .then((response) => {
-        console.log("Response:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error processing payment:", error);
-      });
+      // Step 2: Prepare payment details
+      const paymentDetails = {
+        totalDays: state?.employeeSummary?.totalDays || 0,
+        daysPresent: state?.employeeSummary?.daysPresent || 0,
+        daysAbsent: state?.employeeSummary?.daysAbsent || 0,
+        startDate: state?.weekStartDate || "N/A",
+        endDate: state?.weekEndDate || "N/A",
+        cash: state?.employeeSummary?.employee?.paymentDivision?.cash || 0,
+        totalAmount: totalAmount.toFixed(2),
+        amountDeducted: (totalAmount - remainingAmount).toFixed(2),
+        remainingAmount: remainingAmount.toFixed(2),
+        amountPaid: remainingAmount.toFixed(2),
+        month: month,
+        weekNumber: state?.week,
+      };
+
+      // Step 3: Process payment
+      const paymentResponse = await axios.post(
+        `/employees/${employeeId}/weeklyPay`,
+        paymentDetails
+      );
+
+      console.log("Payment processed successfully:", paymentResponse.data);
+
+      // Show success toast
+      toast.success("Payment processed successfully!");
+
+      // Step 4: Clear deducted loans after successful payment
+      setDeductedLoans([]); // Reset state
+
+      // Redirect to weekly report page after successful payment
+      setTimeout(() => {
+        navigate("/admin/weekly-report");
+      }, 2000); // Redirect after 2 seconds
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      toast.error("An error occurred while processing the payment. Please try again.");
+    } finally {
+      setLoading(false); // Set loading to false after payment processing
+    }
   };
 
   return (
@@ -174,8 +230,9 @@ const PaymentPage = () => {
             <button
               onClick={handlePay}
               className="bg-green-500 text-white px-8 py-3 rounded-md shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105"
+              disabled={loading} // Disable button when loading
             >
-              Process Payment
+              {loading ? "Processing..." : "Process Payment"}
             </button>
           </div>
         </div>

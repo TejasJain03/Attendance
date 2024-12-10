@@ -201,10 +201,18 @@ const WeeklyReportPage = () => {
                       ))}
                     </div>
                     <button
-                      onClick={() => handlePay(employee.employeeId, employee)}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold rounded-lg shadow-md hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-all duration-300"
+                      disabled={employee.paid}
+                      onClick={() => {
+                        if (employee.paid) return; // Prevent the onClick handler if employee is already paid
+                        handlePay(employee.employeeId, employee);
+                      }}
+                      className={`w-full px-4 py-2 text-white text-lg font-semibold rounded-lg shadow-md transition-all duration-300 ${
+                        employee.paid
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75"
+                      }`}
                     >
-                      Pay
+                      {employee.paid ? "Paid" : "Pay"}
                     </button>
                   </div>
                 ))}

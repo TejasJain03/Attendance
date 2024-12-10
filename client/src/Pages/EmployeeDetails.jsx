@@ -39,8 +39,8 @@ const BasicCalendarExample = () => {
         const response = await axios.get(
           `/employees/${employeeId}/attendance/${formattedDate}`
         );
-        console.log(response);
-        setAttendanceData(response.data.dailyAttendanceRecords);
+        console.log(response.data);
+        setAttendanceData(response.data.data);
       } catch (error) {
         console.error("Error fetching attendance data:", error);
       }
@@ -92,7 +92,7 @@ const BasicCalendarExample = () => {
           .slice(0, 2)
           .join("-")}`
       );
-      setAttendanceData(response.data.dailyAttendanceRecords);
+      setAttendanceData(response.data.data);
     } catch (error) {
       console.error("Error updating/removing attendance:", error);
     }

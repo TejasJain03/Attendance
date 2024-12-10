@@ -1,23 +1,28 @@
 import { useState } from "react";
 import axios from "../axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { ROLES } from "../constants/constants"; // Import the ROLES constant
 
 const EmployeeForm = () => {
   const [formData, setFormData] = useState({
     name: "",
-    phoneNumber: "", // Add phone number field
+    phoneNumber: "",
     perDayRate: "",
-    role: "", // Add role field
+    role: "",
     paymentDivision: {
       account: "",
       cash: "",
     },
   });
+
+  const [loading, setLoading] = useState(false); // For submit button state
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     if (name.includes("paymentDivision")) {
       const field = name.split(".")[1];
       setFormData((prev) => ({
@@ -32,22 +37,40 @@ const EmployeeForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted: ", formData);
-    axios
-      .post("/create-employee", formData)
-      .then((response) => {
-        console.log(response);
-        navigate("/dashboard");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+
+    if (!formData.role) {
+      toast.error("Please select a valid role!");
+      return;
+    }
+
+    try {
+      setLoading(true); // Start loading
+      console.log("Submitting form data: ", formData);
+
+      const response = await axios.post("/create-employee", formData);
+
+      console.log("Employee created successfully:", response.data);
+      toast.success(
+        "Employee created successfully!",
+        (onclose = () => {
+          navigate("/admin/employee-management");
+        })
+      );
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      toast.error(
+        "Error occurred while creating the employee. Please try again."
+      );
+    } finally {
+      setLoading(false); // Stop loading
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center p-6">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="bg-white shadow-xl rounded-lg p-10 max-w-lg w-full">
         <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
           Employee Form
@@ -129,7 +152,9 @@ const EmployeeForm = () => {
               className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               required
             >
-              <option value="" disabled>Select a role</option>
+              <option value="" disabled>
+                Select a role
+              </option>
               {ROLES.map((role) => (
                 <option key={role} value={role}>
                   {role}
@@ -187,9 +212,10 @@ const EmployeeForm = () => {
           <div>
             <button
               type="submit"
-              className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
+              className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105 disabled:opacity-50"
+              disabled={loading}
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

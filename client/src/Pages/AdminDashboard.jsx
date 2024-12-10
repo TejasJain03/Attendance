@@ -65,7 +65,7 @@ const AdminDashboard = () => {
               <div className="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105">
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    Weekly Report
+                    Weekly Attendance Report
                   </h2>
                   <p className="text-gray-600 text-lg mb-4">
                     View and manage weekly attendance reports

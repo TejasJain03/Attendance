@@ -9,15 +9,13 @@ exports.adminLogin = async (req, res) => {
   const { username, password } = req.body;
   // Check if the provided username and password match the hardcoded admin credentials
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    // Generate an access token
-    // const token = generateToresken(res, { username: ADMIN_USERNAME });
+    // const token = generateToken(res, { username: ADMIN_USERNAME });
 
     // Respond with the token
     return res.status(200).json({
       message: "Login successful",
     });
   } else {
-    
     // Invalid credentials
     return res.status(401).json({ message: "Invalid username or password" });
   }

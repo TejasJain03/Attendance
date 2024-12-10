@@ -4,6 +4,11 @@ const router = express.Router();
 const attendanceController = require("../controllers/attendanceControllers");
 const catchAsync = require("../utils/catchAsync");
 
+router.get(
+  "/employees/:employeeId/attendance/:month",
+  catchAsync(attendanceController.getAttendanceForMonth)
+);
+
 // Route to get monthly attendance for an employee
 router.get(
   "/employees/:employeeId/attendance/:month/:weekNumber",

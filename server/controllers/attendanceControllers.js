@@ -2,6 +2,7 @@
 const DailyAttendance = require("../models/dailyAttendence");
 const Employee = require("../models/employee");
 const moment = require("moment"); // Assuming you use moment.js for date manipulation
+const WeeklyPay = require("../models/WeeklyPay");
 
 // Get monthly attendance for an employee
 exports.getWeeklyAttendanceForEmployee = async (req, res) => {
@@ -18,7 +19,7 @@ exports.getWeeklyAttendanceForEmployee = async (req, res) => {
     // Fetch attendance records only for the specific employee and month
     const dailyAttendanceRecords = await DailyAttendance.find({
       employeeId: employeeId, // Filter by the specific employee ID
-      month: { $eq: month },  // Filter by the specified month
+      month: { $eq: month }, // Filter by the specified month
     });
 
     // Filter records to include only those within the requested week
@@ -87,7 +88,6 @@ exports.getWeeklyAttendanceForEmployee = async (req, res) => {
   }
 };
 
-
 exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
   let { month, weekNumber } = req.params;
 
@@ -104,6 +104,9 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
     const dailyAttendanceRecords = await DailyAttendance.find({
       month: { $eq: month },
     });
+
+    // Fetch weekly pay records for the specified month and week
+    const weekPaidRecords = await WeeklyPay.find({ month, weekNumber });
 
     // Group records by employeeId and week number
     const groupedByEmployee = dailyAttendanceRecords.reduce((acc, record) => {
@@ -128,6 +131,12 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
     const attendanceSummary = employees.map((employee) => {
       const weekRecords = groupedByEmployee[employee._id] || []; // Use empty array if no records
       const totalDays = weekRecords.length;
+
+      // Check if employee has been paid for the week
+      const isPaid = weekPaidRecords.some(
+        (record) => record.employeeId.toString() === employee._id.toString()
+      );
+
       // Count attendance types
       const daysPresent = weekRecords.filter(
         (record) => record.status === "Present"
@@ -171,6 +180,7 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
         halfDays,
         daysPresent,
         daysAbsent,
+        paid: isPaid, // Indicate if the employee is paid
       };
     });
 
@@ -286,5 +296,21 @@ exports.removeAttendance = async (req, res) => {
   res.status(200).json({
     message: "Attendance removed successfully",
     dailyAttendance: dailyRecord,
+  });
+};
+
+exports.getAttendanceForMonth = async (req, res) => {
+  const { employeeId, month } = req.params;
+
+  // Query database for attendance records within the specified month
+  const attendanceRecords = await DailyAttendance.find({
+    employeeId,
+    month,
+  });
+
+  // Return the results
+  return res.status(200).json({
+    success: true,
+    data: attendanceRecords,
   });
 };
