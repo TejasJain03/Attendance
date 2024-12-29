@@ -22,6 +22,24 @@ const WeeklyPaySchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  fullDaysWithExtraWork: {
+    type: [
+      {
+        date: { type: String, required: true },
+        extraWorkHours: { type: Number, required: true },
+      },
+    ],
+    default: [],
+  },
+  fullDaysWithoutExtraWork: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
+  halfDays: {
+    type: Number,
+    default: 0,
+  },
   startDate: {
     type: Date,
     required: true,

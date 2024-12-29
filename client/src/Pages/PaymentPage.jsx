@@ -33,6 +33,7 @@ const PaymentPage = () => {
           state.employeeSummary,
           response.data.totalDaysPresent
         );
+        console.log(state.employeeSummary);
         setTotalAmount(result);
       })
       .catch((err) => {
@@ -132,6 +133,12 @@ const PaymentPage = () => {
         amountPaid: remainingAmount.toFixed(2),
         month: month,
         weekNumber: state?.week,
+        fullDaysWithExtraWork:
+          state?.employeeSummary?.fullDaysWithExtraWork || [],
+        fullDaysWithoutExtraWork:
+          state?.employeeSummary?.fullDaysWithoutExtraWork || 0,
+        halfDays: state?.employeeSummary?.halfDays || 0,
+        paid: state?.employeeSummary?.paid || false,
       };
 
       // Step 3: Process payment
@@ -154,7 +161,9 @@ const PaymentPage = () => {
       }, 2000); // Redirect after 2 seconds
     } catch (error) {
       console.error("Error processing payment:", error);
-      toast.error("An error occurred while processing the payment. Please try again.");
+      toast.error(
+        "An error occurred while processing the payment. Please try again."
+      );
     } finally {
       setLoading(false); // Set loading to false after payment processing
     }

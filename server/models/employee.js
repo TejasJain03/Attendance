@@ -17,4 +17,6 @@ const employeeSchema = new mongoose.Schema({
   role: { type: String, required: true }, // Adding role field (e.g., 'manager', 'employee', etc.)
 });
 
-module.exports = mongoose.model("Employee", employeeSchema);
+const Employee = mongoose.model('Employee', employeeSchema);
+
+module.exports = Employee;

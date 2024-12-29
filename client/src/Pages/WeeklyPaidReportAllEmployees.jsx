@@ -156,6 +156,7 @@ const WeeklyReportPage = () => {
           )}
 
           {/* Table */}
+          {/* Table */}
           {!loading && (
             <div className="overflow-x-auto">
               <table className="table-auto w-full border-collapse border border-gray-300">
@@ -167,7 +168,15 @@ const WeeklyReportPage = () => {
                     <th className="border border-gray-300 px-4 py-2">
                       Days Present
                     </th>
-
+                    <th className="border border-gray-300 px-4 py-2">
+                      Full Days with Extra Work
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Full Days without Extra Work
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Half Days
+                    </th>
                     <th className="border border-gray-300 px-4 py-2">
                       Total Amount
                     </th>
@@ -196,6 +205,19 @@ const WeeklyReportPage = () => {
                           {emp.daysPresent}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.fullDaysWithExtraWork.length > 0
+                            ? emp.fullDaysWithExtraWork.length
+                            : "None"}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.fullDaysWithoutExtraWork.length > 0
+                            ? emp.fullDaysWithoutExtraWork.join(", ")
+                            : "None"}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.halfDays || "None"}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
                           ${emp.totalAmount.toFixed(2)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
@@ -209,7 +231,7 @@ const WeeklyReportPage = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan="10"
                         className="border border-gray-300 px-4 py-2 text-center text-gray-500"
                       >
                         No data available.

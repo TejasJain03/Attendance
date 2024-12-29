@@ -17,4 +17,9 @@ router.get(
   catchAsync(weeklyPayController.getWeeklyPayForEmployee)
 );
 
+router.get(
+  "/employees/monthly-report/:month",
+  catchAsync(weeklyPayController.getMonthlyPayReportForAllEmployees)
+);
+
 module.exports = router;

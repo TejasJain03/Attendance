@@ -96,6 +96,24 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
+
+              {/* New Option: Monthly Report */}
+              <div className="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105">
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    Monthly Report
+                  </h2>
+                  <p className="text-gray-600 text-lg mb-4">
+                    View and manage monthly reports
+                  </p>
+                  <button
+                    onClick={() => navigate("/admin/monthly-paid-report")}
+                    className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg text-lg font-medium shadow-md transition-all duration-300 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                  >
+                    View Monthly Report
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

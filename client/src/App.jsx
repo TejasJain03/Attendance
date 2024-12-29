@@ -17,6 +17,7 @@ import WeeklyReportPage from "./Pages/WeeklyReport";
 import MultipleAttendance from "./Pages/MultipleAttendance";
 import WeeklyPaidReportAllEmployees from "./Pages/WeeklyPaidReportAllEmployees";
 import { useEffect, useState } from "react";
+import MonthlyReportPage from "./Pages/MonthlyReportPage";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -62,6 +63,10 @@ const App = () => {
         <Route
           path="/admin/weekly-paid-report"
           element={<WeeklyPaidReportAllEmployees />}
+        />
+         <Route
+          path="/admin/monthly-paid-report"
+          element={<MonthlyReportPage />}
         />
       </Routes>
     </Router>

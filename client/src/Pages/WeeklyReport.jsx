@@ -23,7 +23,7 @@ const WeeklyReportPage = () => {
         const response = await axios.get(
           `/employees/weekly-report/${month}/${weekNumber}`
         );
-        console.log(response);
+        console.log(response.data.attendanceSummary[1].paid);
         setData(response.data); // Set the fetched data
         setError(null); // Clear any previous errors
       } catch (err) {
