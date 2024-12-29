@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import axios from "../axios";
 import LoanForm from "../Components/LoanForm";

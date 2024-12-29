@@ -1,4 +1,4 @@
-const WeeklyPay = require("../models/WeeklyPay");
+const WeeklyPay = require("../models/weeklyPay");
 const Employee = require("../models/employee");
 const mongoose = require("mongoose");
 

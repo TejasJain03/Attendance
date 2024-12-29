@@ -2,7 +2,7 @@
 const DailyAttendance = require("../models/dailyAttendence");
 const Employee = require("../models/employee");
 const moment = require("moment"); // Assuming you use moment.js for date manipulation
-const WeeklyPay = require("../models/WeeklyPay");
+const WeeklyPay = require("../models/weeklyPay");
 
 // Get monthly attendance for an employee
 exports.getWeeklyAttendanceForEmployee = async (req, res) => {
