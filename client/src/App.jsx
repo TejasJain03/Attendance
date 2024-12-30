@@ -1,72 +1,68 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-// import ProtectedRoute from "./Components/ProtectedRoute";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./Pages/LoginPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import EmployeeDetailsPage from "./Pages/EmployeeDetails";
 import AddEmployee from "./Pages/AddEmployee";
-import SalarySummary from "./Pages/SalarySummary";
 import LoanSummary from "./Pages/LoanSummary";
 import PaymentPage from "./Pages/PaymentPage";
 import EmployeesManagement from "./Pages/EmployeesManagement";
 import WeeklyReportPage from "./Pages/WeeklyReport";
 import MultipleAttendance from "./Pages/MultipleAttendance";
 import WeeklyPaidReportAllEmployees from "./Pages/WeeklyPaidReportAllEmployees";
-import { useEffect, useState } from "react";
 import MonthlyReportPage from "./Pages/MonthlyReportPage";
+import ProtectedRoute from "./Components/ProtectedRoute"; // Import the ProtectedRoute component
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    // Check login status when the app loads
-    const loggedInStatus = localStorage.getItem("loggedIn") === "true";
-    setIsLoggedIn(loggedInStatus);
-  }, []);
-
   return (
     <Router>
+      {/* Render Navbar for all routes except the login page */}
       <Routes>
         <Route
           path="/"
-          element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} />}
+          element={<Navigate to={localStorage.getItem("loggedIn") === "true" ? "/dashboard" : "/login"} />}
         />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<AdminDashboard />} />
-        <Route path="/employee/:employeeId" element={<EmployeeDetailsPage />} />
+        
+        {/* Use ProtectedRoute for all protected routes */}
         <Route
-          path="/employee/salary-summary/:employeeId"
-          element={<SalarySummary />}
+          path="/dashboard"
+          element={<ProtectedRoute element={<AdminDashboard />} />}
+        />
+        <Route
+          path="/employee/:employeeId"
+          element={<ProtectedRoute element={<EmployeeDetailsPage />} />}
         />
         <Route
           path="/employee/loan-details/:employeeId"
-          element={<LoanSummary />}
+          element={<ProtectedRoute element={<LoanSummary />} />}
         />
         <Route
           path="/admin/:employeeId/:month/:weekNumber"
-          element={<PaymentPage />}
+          element={<ProtectedRoute element={<PaymentPage />} />}
         />
-        <Route path="/admin/add-employee" element={<AddEmployee />} />
+        <Route
+          path="/admin/add-employee"
+          element={<ProtectedRoute element={<AddEmployee />} />}
+        />
         <Route
           path="/admin/employee-management"
-          element={<EmployeesManagement />}
+          element={<ProtectedRoute element={<EmployeesManagement />} />}
         />
         <Route
           path="/admin/multiple-attendance"
-          element={<MultipleAttendance />}
+          element={<ProtectedRoute element={<MultipleAttendance />} />}
         />
-        <Route path="/admin/weekly-report" element={<WeeklyReportPage />} />
+        <Route
+          path="/admin/weekly-report"
+          element={<ProtectedRoute element={<WeeklyReportPage />} />}
+        />
         <Route
           path="/admin/weekly-paid-report"
-          element={<WeeklyPaidReportAllEmployees />}
+          element={<ProtectedRoute element={<WeeklyPaidReportAllEmployees />} />}
         />
-         <Route
+        <Route
           path="/admin/monthly-paid-report"
-          element={<MonthlyReportPage />}
+          element={<ProtectedRoute element={<MonthlyReportPage />} />}
         />
       </Routes>
     </Router>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../axios"; // Make sure this is your axios instance
 import * as XLSX from "xlsx";
+import Navbar from "../Components/Navbar"; // Import Navbar
 
 const MonthlyReportPage = () => {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // Default to current month in yyyy-mm format
@@ -84,115 +85,132 @@ const MonthlyReportPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-indigo-600 px-6 py-4">
-          <h2 className="text-2xl font-bold text-white text-center">
-            Monthly Report of Employees
-          </h2>
-        </div>
-
-        <div className="p-6">
-          {/* Input Form */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-grow">
-              <label className="block text-sm font-medium text-gray-700">
-                Select Month
-              </label>
-              <input
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="mt-1 block w-auto rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-indigo-600 px-6 py-4">
+            <h2 className="text-2xl font-bold text-white text-center">
+              Monthly Report of Employees
+            </h2>
           </div>
 
-          {/* Loader */}
-          {loading && (
-            <div className="flex justify-center items-center py-6">
-              <div className="w-16 h-16 border-t-4 border-indigo-600 border-solid rounded-full animate-spin"></div>
+          <div className="p-6">
+            {/* Input Form */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-grow">
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Month
+                </label>
+                <input
+                  type="month"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="mt-1 block w-auto rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
             </div>
-          )}
 
-          {/* Error / No Reports */}
-          {error && !loading && (
-            <div className="text-center text-gray-500 py-6">
-              <p>No reports available for this month.</p>
-            </div>
-          )}
+            {/* Loader */}
+            {loading && (
+              <div className="flex justify-center items-center py-6">
+                <div className="w-16 h-16 border-t-4 border-indigo-600 border-solid rounded-full animate-spin"></div>
+              </div>
+            )}
 
-          {/* No Reports / Table */}
-          {!loading && employees.length === 0 && !error && (
-            <div className="text-center text-gray-500 py-6">
-              <p>No reports available for this month.</p>
-            </div>
-          )}
+            {/* Error / No Reports */}
+            {error && !loading && (
+              <div className="text-center text-gray-500 py-6">
+                <p>No reports available for this month.</p>
+              </div>
+            )}
 
-          {!loading && employees.length > 0 && !error && (
-            <div className="overflow-x-auto">
-              <table className="table-auto w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-indigo-100 text-indigo-700">
-                    <th className="border border-gray-300 px-4 py-2">#</th>
-                    <th className="border border-gray-300 px-4 py-2">Employee Name</th>
-                    <th className="border border-gray-300 px-4 py-2">Days Present</th>
-                    <th className="border border-gray-300 px-4 py-2">Days Absent</th>
-                    <th className="border border-gray-300 px-4 py-2">Total Amount Paid</th>
-                    <th className="border border-gray-300 px-4 py-2">Extra Work Days</th>
-                    <th className="border border-gray-300 px-4 py-2">Full Days Without Extra Work</th>
-                    <th className="border border-gray-300 px-4 py-2">Half Days</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((emp, index) => (
-                    <tr key={emp.employeeId} className="text-gray-700">
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {index + 1}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-left">
-                        {emp.employeeName}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {emp.totalDaysPresent}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {emp.totalDaysAbsent}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        ${emp.totalAmountPaid.toFixed(2)}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {emp.totalExtraWorkDays}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {emp.totalFullDaysWithoutExtraWork}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {emp.totalHalfDays}
-                      </td>
+            {/* No Reports / Table */}
+            {!loading && employees.length === 0 && !error && (
+              <div className="text-center text-gray-500 py-6">
+                <p>No reports available for this month.</p>
+              </div>
+            )}
+
+            {!loading && employees.length > 0 && !error && (
+              <div className="overflow-x-auto">
+                <table className="table-auto w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-indigo-100 text-indigo-700">
+                      <th className="border border-gray-300 px-4 py-2">#</th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Employee Name
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Days Present
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Days Absent
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Total Amount Paid
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Extra Work Days
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Full Days Without Extra Work
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Half Days
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {employees.map((emp, index) => (
+                      <tr key={emp.employeeId} className="text-gray-700">
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {index + 1}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-left">
+                          {emp.employeeName}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.totalDaysPresent}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.totalDaysAbsent}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          ${emp.totalAmountPaid.toFixed(2)}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.totalExtraWorkDays}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.totalFullDaysWithoutExtraWork}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {emp.totalHalfDays}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          {/* Download Button */}
-          {!loading && employees.length > 0 && !error && (
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleDownloadExcel}
-                className="bg-green-500 text-white px-6 py-3 rounded-lg shadow hover:bg-green-600 transition duration-300 ease-in-out"
-              >
-                Download Excel
-              </button>
-            </div>
-          )}
+            {/* Download Button */}
+            {!loading && employees.length > 0 && !error && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleDownloadExcel}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg shadow hover:bg-green-600 transition duration-300 ease-in-out"
+                >
+                  Download Excel
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

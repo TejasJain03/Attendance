@@ -89,32 +89,61 @@ exports.getWeeklyAttendanceForEmployee = async (req, res) => {
 };
 
 exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
-  let { month, weekNumber } = req.params;
+  const { month, weekNumber } = req.params;
+
+  function getWeekDatesForMonth(month, weekNumber) {
+    const startOfMonth = moment(month, "YYYY-MM").startOf("month");
+    const endOfMonth = moment(month, "YYYY-MM").endOf("month");
+
+    let currentStart = startOfMonth.clone();
+    let currentEnd = moment.min(
+      currentStart.clone().endOf("week"),
+      endOfMonth.clone()
+    );
+
+    let currentWeek = 1;
+
+    while (currentStart.isSameOrBefore(endOfMonth)) {
+      if (currentWeek === parseInt(weekNumber)) {
+        return {
+          weekStartDate: currentStart,
+          weekEndDate: currentEnd,
+        };
+      }
+
+      currentStart = currentEnd.clone().add(1, "day");
+      currentEnd = moment.min(currentStart.clone().endOf("week"), endOfMonth);
+      currentWeek++;
+    }
+
+    return null; // If the weekNumber is out of range
+  }
 
   try {
-    const parsedMonth = moment(month, "YYYY-MM"); // e.g., "2024-12"
-    const startOfMonth = parsedMonth.startOf("month");
+    const weekDates = getWeekDatesForMonth(month, weekNumber);
 
-    // Calculate start and end dates for the week
-    const startOfWeek = startOfMonth.clone().add((weekNumber - 1) * 7, "days");
-    const endOfWeek = startOfWeek.clone().add(6, "days");
+    if (!weekDates) {
+      return res.status(400).json({
+        message: "Invalid week number for the specified month.",
+      });
+    }
 
-    // Fetch all daily attendance records for the given month
+    const { weekStartDate, weekEndDate } = weekDates;
+    // Fetch all daily attendance records within the week range
     const dailyAttendanceRecords = await DailyAttendance.find({
-      month: { $eq: month },
+      date: {
+        $gte: weekStartDate.format("YYYY-MM-DD"), 
+        $lte: weekEndDate.format("YYYY-MM-DD"),
+      },
     });
 
     // Fetch weekly pay records for the specified month and week
-    const weekPaidRecords = await WeeklyPay.find({month,weekNumber});
-    // Group records by employeeId and week number
-    const groupedByEmployee = dailyAttendanceRecords.reduce((acc, record) => {
-      const { employeeId, date, status, attendanceType, extraWorkHours } =
-        record;
-      const momentDate = moment(date);
-      const calculatedWeekNumber =
-        Math.floor(momentDate.diff(startOfMonth, "days") / 7) + 1;
+    const weekPaidRecords = await WeeklyPay.find({ month, weekNumber });
 
-      if (calculatedWeekNumber !== parseInt(weekNumber)) return acc;
+    // Group records by employeeId
+    const groupedByEmployee = dailyAttendanceRecords.reduce((acc, record) => {
+      const { employeeId, status, attendanceType, extraWorkHours, date } =
+        record;
 
       if (!acc[employeeId]) acc[employeeId] = [];
       acc[employeeId].push({ status, attendanceType, extraWorkHours, date });
@@ -130,9 +159,9 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
       const totalDays = weekRecords.length;
 
       // Check if employee has been paid for the week
-      const isPaid = weekPaidRecords.some((record) => {
-        return record.employeeId.toString() === employee._id.toString();
-      });
+      const isPaid = weekPaidRecords.some(
+        (record) => record.employeeId.toString() === employee._id.toString()
+      );
 
       // Count attendance types
       const daysPresent = weekRecords.filter(
@@ -142,7 +171,6 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
         (record) => record.status === "Absent"
       ).length;
 
-      // Separate Full and Half Days
       const fullDaysWithoutExtraWork = weekRecords.filter(
         (record) =>
           record.attendanceType === "Full Day" &&
@@ -184,8 +212,8 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
     res.status(200).json({
       month,
       week: weekNumber,
-      weekStartDate: startOfWeek.format("YYYY-MM-DD"),
-      weekEndDate: endOfWeek.format("YYYY-MM-DD"),
+      weekStartDate: weekStartDate.format("YYYY-MM-DD"),
+      weekEndDate: weekEndDate.format("YYYY-MM-DD"),
       attendanceSummary,
     });
   } catch (error) {
@@ -194,36 +222,48 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
   }
 };
 
-
 // Update or mark attendance for an employee on a specific date
 exports.updateDailyAttendance = async (req, res) => {
   const { employeeId, date } = req.params;
-  const { status, attendanceType } = req.body; // Make sure status is part of the body
-  const month = date.slice(0, 7);
+  const { status, attendanceType, extraWorkHours } = req.body; // Now including extraWorkHours
+  const month = date.slice(0, 7); // Extract the month in "YYYY-MM" format
+
+  // Validate the date input
   if (!date) {
     return res.status(400).json({ message: "Date is required" });
   }
+
   try {
-    // Check if the attendance date is provided and valid
+    // Check if the attendance date exists for the given employee
     const existingAttendance = await DailyAttendance.findOne({
       employeeId,
       date,
     });
 
     if (existingAttendance) {
-      // Update the existing attendance
+      // If attendance exists, update it
       existingAttendance.status = status;
+      existingAttendance.attendanceType = attendanceType;
+
+      // Handle extra work hours based on the attendance type
+      if (attendanceType === "Full Day" && extraWorkHours) {
+        existingAttendance.extraWorkHours = extraWorkHours;
+      } else {
+        existingAttendance.extraWorkHours = null; // Reset extra hours if not full day
+      }
+
       await existingAttendance.save();
       return res.status(200).json(existingAttendance);
     }
 
-    // Insert new attendance record
+    // Insert a new attendance record if it doesn't exist
     const newAttendance = new DailyAttendance({
       employeeId,
       date,
       status,
       month,
       attendanceType,
+      extraWorkHours: attendanceType === "Full Day" ? extraWorkHours : null, // Set extra work hours for Full Day
     });
 
     await newAttendance.save();

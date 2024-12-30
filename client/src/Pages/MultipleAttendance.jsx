@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "../axios";
+import Navbar from "../Components/Navbar"; // Import Navbar
 
 const AttendancePage = () => {
   const [employees, setEmployees] = useState([]);
@@ -72,147 +73,150 @@ const AttendancePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
-      <div className="container mx-auto">
-        <h2 className="text-3xl font-bold text-white text-center mb-8">
-          Employee Attendance
-        </h2>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-8">
+            Employee Attendance
+          </h2>
 
-        {/* Separate Date Picker */}
-        <div className="mb-6 flex justify-center">
-          <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Date
-            </label>
-            <input
-              type="date"
-              value={attendanceDate}
-              onChange={handleDateChange}
-              className="w-48 border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-            />
+          {/* Separate Date Picker */}
+          <div className="mb-6 flex justify-center">
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Date
+              </label>
+              <input
+                type="date"
+                value={attendanceDate}
+                onChange={handleDateChange}
+                className="w-48 border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Employee Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {employees.map((employee) => (
-            <div
-              key={employee._id}
-              className={`p-6 rounded-lg shadow-lg bg-white cursor-pointer border ${
-                selectedEmployees.includes(employee._id)
-                  ? "border-indigo-500"
-                  : "border-gray-300"
-              }`}
+          {/* Employee Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {employees.map((employee) => (
+              <div
+                key={employee._id}
+                className={`p-6 rounded-lg shadow-lg bg-white cursor-pointer border ${
+                  selectedEmployees.includes(employee._id)
+                    ? "border-indigo-500"
+                    : "border-gray-300"
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedEmployees.includes(employee._id)}
+                    onChange={() => handleEmployeeSelect(employee._id)}
+                    className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {employee.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">{employee.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Submit Button */}
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setShowPopup(true)}
+              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition"
+              disabled={selectedEmployees.length === 0}
             >
-              <div className="flex items-center space-x-4">
-                <input
-                  type="checkbox"
-                  checked={selectedEmployees.includes(employee._id)}
-                  onChange={() => handleEmployeeSelect(employee._id)}
-                  className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {employee.name}
-                  </h3>
-                  <p className="text-sm text-gray-600">{employee.role}</p>
+              Submit Attendance
+            </button>
+          </div>
+
+          {/* Popup for Attendance Details */}
+          {showPopup && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6">
+              <div className="bg-white rounded-lg p-8 max-w-sm w-full">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                  Attendance Details
+                </h3>
+
+                {/* Status Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    value={attendanceDetails.status}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  >
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </div>
+
+                {/* Attendance Type Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600">
+                    Attendance Type
+                  </label>
+                  <select
+                    name="attendanceType"
+                    value={attendanceDetails.attendanceType}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  >
+                    <option value="Full Day">Full Day</option>
+                    <option value="Half Day">Half Day</option>
+                  </select>
+                </div>
+
+                {/* Extra Hours Input */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600">
+                    Extra Hours (Max 4)
+                  </label>
+                  <input
+                    type="number"
+                    name="extraWorkHours"
+                    value={attendanceDetails.extraWorkHours}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                    min="0"
+                    max="4"
+                  />
+                </div>
+
+                {/* Submit Button in Popup */}
+                <div className="mt-6">
+                  <button
+                    onClick={handleSubmitAttendance}
+                    className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
+                  >
+                    Submit Attendance
+                  </button>
+                </div>
+
+                {/* Close Popup Button */}
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setShowPopup(false)}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
-          ))}
+          )}
         </div>
-
-        {/* Submit Button */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => setShowPopup(true)}
-            className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition"
-            disabled={selectedEmployees.length === 0}
-          >
-            Submit Attendance
-          </button>
-        </div>
-
-        {/* Popup for Attendance Details */}
-        {showPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6">
-            <div className="bg-white rounded-lg p-8 max-w-sm w-full">
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                Attendance Details
-              </h3>
-
-              {/* Status Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={attendanceDetails.status}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                >
-                  <option value="Present">Present</option>
-                  <option value="Absent">Absent</option>
-                </select>
-              </div>
-
-              {/* Attendance Type Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600">
-                  Attendance Type
-                </label>
-                <select
-                  name="attendanceType"
-                  value={attendanceDetails.attendanceType}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                >
-                  <option value="Full Day">Full Day</option>
-                  <option value="Half Day">Half Day</option>
-                </select>
-              </div>
-
-              {/* Extra Hours Input */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600">
-                  Extra Hours (Max 4)
-                </label>
-                <input
-                  type="number"
-                  name="extraWorkHours"
-                  value={attendanceDetails.extraWorkHours}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  min="0"
-                  max="4"
-                />
-              </div>
-
-              {/* Submit Button in Popup */}
-              <div className="mt-6">
-                <button
-                  onClick={handleSubmitAttendance}
-                  className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
-                >
-                  Submit Attendance
-                </button>
-              </div>
-
-              {/* Close Popup Button */}
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => setShowPopup(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 };
 

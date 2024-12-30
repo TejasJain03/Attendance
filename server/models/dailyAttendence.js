@@ -30,8 +30,11 @@ const dailyAttendanceSchema = new mongoose.Schema({
   },
   extraWorkHours: {
     type: Number,
-    default: 0, // Default value is 0
-    max: 4, // Maximum value is 4
+    enum: [0, 0.5, 1], // Only accept 0.5 or 1 for extra work hours
+    default: null, // Default to null if not provided
+    required: function () {
+      return this.attendanceType === "Full Day"; // Only required if attendanceType is "Full Day"
+    },
   },
 });
 
