@@ -24,4 +24,14 @@ router.put(
   catchAsync(employeeController.deductLoan)
 );
 
+router.put(
+  "/employees/:employeeId",
+  catchAsync(employeeController.updateEmployee)
+);
+
+router.delete(
+  "/employees/:employeeId",
+  catchAsync(employeeController.deleteEmployee)
+);
+
 module.exports = router;

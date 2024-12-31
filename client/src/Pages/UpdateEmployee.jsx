@@ -1,24 +1,49 @@
-import { useState } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
 import axios from "../axios";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import Navbar from "../Components/Navbar";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ROLES } from "../constants/constants"; // Import the ROLES constant
-import Navbar from "../Components/Navbar";
-const EmployeeForm = () => {
+
+const UpdateEmployee = () => {
+  const { employeeId } = useParams(); // Get the employee ID from route params
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
     perDayRate: "",
     role: "",
     paymentDivision: {
-      account: "",
-      cash: "",
+      account: 0, // Default value
+      cash: 0, // Default value
     },
   });
 
-  const [loading, setLoading] = useState(false); // For submit button state
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // Fetch employee data
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/employees/${employeeId}`);
+        const data = response.data.employee;
+
+        // Ensure paymentDivision exists with default structure
+        setFormData({
+          ...data,
+          paymentDivision: data.paymentDivision || { account: 0, cash: 0 },
+        });
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        toast.error("Failed to load employee details.");
+      }
+    };
+    fetchEmployee();
+  }, [employeeId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,31 +65,33 @@ const EmployeeForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate role
     if (!formData.role) {
       toast.error("Please select a valid role!");
       return;
     }
 
+    // Validate paymentDivision
+    const { account, cash } = formData.paymentDivision;
+    if (
+      parseFloat(account) + parseFloat(cash) !==
+      parseFloat(formData.perDayRate)
+    ) {
+      toast.error("Account and Cash must sum up to Per Day Rate!");
+      return;
+    }
+
     try {
-      setLoading(true); // Start loading
-      console.log("Submitting form data: ", formData);
-
-      const response = await axios.post("/create-employee", formData);
-
-      console.log("Employee created successfully:", response.data);
-      toast.success(
-        "Employee created successfully!",
-        (onclose = () => {
-          navigate("/admin/employee-management");
-        })
-      );
+      setLoading(true);
+      await axios.put(`/employees/${employeeId}`, formData);
+      toast.success("Employee updated successfully!");
+      navigate("/admin/employee-management");
     } catch (error) {
-      console.error("Error creating employee:", error);
       toast.error(
-        "Error occurred while creating the employee. Please try again."
+        "Error occurred while updating the employee. Please try again."
       );
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -72,9 +99,10 @@ const EmployeeForm = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center p-6">
+        <ToastContainer position="top-right" autoClose={3000} />
         <div className="bg-white shadow-xl rounded-lg p-10 max-w-lg w-full">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
-            Employee Form
+            Update Employee
           </h2>
           <form className="space-y-8" onSubmit={handleSubmit}>
             {/* Employee Name */}
@@ -213,10 +241,10 @@ const EmployeeForm = () => {
             <div>
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105 disabled:opacity-50"
+                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-green-500 focus:outline-none transition transform hover:scale-105 disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? "Submitting..." : "Submit"}
+                {loading ? "Updating..." : "Update"}
               </button>
             </div>
           </form>
@@ -226,4 +254,4 @@ const EmployeeForm = () => {
   );
 };
 
-export default EmployeeForm;
+export default UpdateEmployee;

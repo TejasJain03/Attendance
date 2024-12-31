@@ -112,3 +112,48 @@ exports.deductLoan = async (req, res) => {
     loan: employee.loan,
   });
 };
+
+exports.updateEmployee = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const updateData = req.body;
+
+    // Find the employee by ID and update their details
+    const updatedEmployee = await Employee.findByIdAndUpdate(employeeId, updateData, {
+      new: true, // Return the updated document
+      runValidators: true, // Validate the data before updating
+    });
+
+    if (!updatedEmployee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.status(200).json({
+      message: "Employee updated successfully",
+      data: updatedEmployee,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating employee", error: error.message });
+  }
+};
+
+// Controller to delete an employee
+exports.deleteEmployee = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    // Find the employee by ID and delete
+    const deletedEmployee = await Employee.findByIdAndDelete(employeeId);
+
+    if (!deletedEmployee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.status(200).json({
+      message: "Employee deleted successfully",
+      data: deletedEmployee,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting employee", error: error.message });
+  }
+};

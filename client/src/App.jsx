@@ -1,6 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ToastContainer } from 'react-toastify'; // Import ToastContainer
-import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toasts
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ToastContainer } from "react-toastify"; // Import ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Import the CSS for toasts
 import LoginPage from "./Pages/LoginPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import EmployeeDetailsPage from "./Pages/EmployeeDetails";
@@ -12,20 +17,27 @@ import WeeklyReportPage from "./Pages/WeeklyReport";
 import MultipleAttendance from "./Pages/MultipleAttendance";
 import WeeklyPaidReportAllEmployees from "./Pages/WeeklyPaidReportAllEmployees";
 import MonthlyReportPage from "./Pages/MonthlyReportPage";
-import ProtectedRoute from "./Components/ProtectedRoute"; // Import the ProtectedRoute component
+import ProtectedRoute from "./Components/ProtectedRoute";
+import UpdateEmployee from "./Pages/UpdateEmployee";
 
 const App = () => {
   return (
     <Router>
-      {/* Render Navbar for all routes except the login page */}
       <Routes>
         <Route
           path="/"
-          element={<Navigate to={localStorage.getItem("loggedIn") === "true" ? "/dashboard" : "/login"} />}
+          element={
+            <Navigate
+              to={
+                localStorage.getItem("loggedIn") === "true"
+                  ? "/dashboard"
+                  : "/login"
+              }
+            />
+          }
         />
         <Route path="/login" element={<LoginPage />} />
-        
-        {/* Use ProtectedRoute for all protected routes */}
+        {/* Protected routes */}
         <Route
           path="/dashboard"
           element={<ProtectedRoute element={<AdminDashboard />} />}
@@ -47,6 +59,10 @@ const App = () => {
           element={<ProtectedRoute element={<AddEmployee />} />}
         />
         <Route
+          path="/admin/update-employee/:employeeId"
+          element={<ProtectedRoute element={<UpdateEmployee />} />}
+        />
+        <Route
           path="/admin/employee-management"
           element={<ProtectedRoute element={<EmployeesManagement />} />}
         />
@@ -60,7 +76,9 @@ const App = () => {
         />
         <Route
           path="/admin/weekly-paid-report"
-          element={<ProtectedRoute element={<WeeklyPaidReportAllEmployees />} />}
+          element={
+            <ProtectedRoute element={<WeeklyPaidReportAllEmployees />} />
+          }
         />
         <Route
           path="/admin/monthly-paid-report"
@@ -68,14 +86,14 @@ const App = () => {
         />
       </Routes>
 
-      {/* Add ToastContainer to show toasts */}
-      <ToastContainer 
-        position="top-right" // Customize position
-        autoClose={1000} // Auto close after 1 seconds
-        hideProgressBar={false} // Show progress bar
-        newestOnTop={false} // Keep toasts in order of appearance
-        closeOnClick // Close on click
-        rtl={false} // Set false for left-to-right direction
+      {/* ToastContainer for global toast notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={1000} // Auto close after 3 seconds
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover

@@ -5,7 +5,8 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "../axios";
 import EmployeeDetails from "../Components/Employee";
-import Navbar from "../Components/Navbar"; // Import Navbar
+import Navbar from "../Components/Navbar"; 
+import { toast } from "react-toastify"; 
 
 const BasicCalendarExample = () => {
   const [date, setDate] = useState(new Date());
@@ -101,6 +102,20 @@ const BasicCalendarExample = () => {
     setIsPopupOpen(false);
   };
 
+  const handleDelete = async (employeeId) => {
+    try {
+      await axios.delete(`/employees/${employeeId}`);
+      toast.success("Employee deleted successfully!", {
+        onClose: () => navigate("/admin/employee-management"),
+      });
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast.error("Failed to delete employee. Please try again.", {
+        onClose: () => console.log("Error toast closed"),
+      });
+    }
+  };
+
   const getTileContent = ({ date }) => {
     const previousDate = new Date(date);
     previousDate.setDate(previousDate.getDate() + 1);
@@ -186,7 +201,9 @@ const BasicCalendarExample = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate(`/employee/update/${employeeId}`)}
+                  onClick={() =>
+                    navigate(`/admin/update-employee/${employeeId}`)
+                  }
                   className="bg-yellow-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none"
                 >
                   Update Details
