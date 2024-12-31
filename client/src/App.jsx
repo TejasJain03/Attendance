@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toasts
 import LoginPage from "./Pages/LoginPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import EmployeeDetailsPage from "./Pages/EmployeeDetails";
@@ -65,6 +67,19 @@ const App = () => {
           element={<ProtectedRoute element={<MonthlyReportPage />} />}
         />
       </Routes>
+
+      {/* Add ToastContainer to show toasts */}
+      <ToastContainer 
+        position="top-right" // Customize position
+        autoClose={1000} // Auto close after 1 seconds
+        hideProgressBar={false} // Show progress bar
+        newestOnTop={false} // Keep toasts in order of appearance
+        closeOnClick // Close on click
+        rtl={false} // Set false for left-to-right direction
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </Router>
   );
 };

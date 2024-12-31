@@ -1,7 +1,8 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../axios"; // Importing axios
-import Navbar from "../Components/Navbar"; // Import Navbar
+import axios from "../axios";
+import Navbar from "../Components/Navbar";
 
 const WeeklyReportPage = () => {
   const [month, setMonth] = useState(() => {
@@ -24,10 +25,8 @@ const WeeklyReportPage = () => {
         const response = await axios.get(
           `/employees/weekly-report/${month}/${weekNumber}`
         );
-
-        console.log(response.data);
-        setData(response.data); // Set the fetched data
-        setError(null); // Clear any previous errors
+        setData(response.data);
+        setError(null);
       } catch (err) {
         console.error("Error fetching weekly report:", err);
         setError("Something went wrong. Please try again.");
@@ -48,8 +47,7 @@ const WeeklyReportPage = () => {
   };
 
   const handlePay = (employeeId, employeeSummary) => {
-    const { weekStartDate, weekEndDate, week } = data; // Assuming these are part of the fetched weekly report data
-    console.log(`Paying for employee ID: ${employeeId}`);
+    const { weekStartDate, weekEndDate, week } = data;
     navigate(`/admin/${employeeId}/${month}/${weekNumber}`, {
       state: {
         employeeSummary,
@@ -60,161 +58,164 @@ const WeeklyReportPage = () => {
     });
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0"); // Ensure 2 digits
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-extrabold text-center mb-10 text-indigo-900">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
             Weekly Attendance Report
           </h1>
 
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 flex flex-wrap justify-between items-center">
-              <div className="flex flex-wrap items-center space-x-4">
-                <div>
+          <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div className="p-6 bg-white border-b border-gray-200">
+              <div className="flex flex-wrap -mx-3 mb-6">
+                <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                   <label
+                    className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                     htmlFor="month"
-                    className="block text-sm font-medium text-indigo-100"
                   >
                     Month
                   </label>
                   <input
-                    type="month"
+                    className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="month"
+                    type="month"
                     value={month}
                     onChange={handleMonthChange}
-                    className="mt-1 block w-full rounded-md bg-indigo-400 border-transparent focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-white placeholder-indigo-200"
                   />
                 </div>
-                <div>
+                <div className="w-full md:w-1/2 px-3">
                   <label
+                    className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                     htmlFor="weekNumber"
-                    className="block text-sm font-medium text-indigo-100"
                   >
                     Week
                   </label>
                   <input
-                    type="number"
+                    className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="weekNumber"
+                    type="number"
                     min="1"
                     max="5"
                     value={weekNumber}
                     onChange={handleWeekNumberChange}
-                    className="mt-1 block w-full rounded-md bg-indigo-400 border-transparent focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-white placeholder-indigo-200"
                   />
                 </div>
               </div>
+
               {data && (
-                <div className="text-white text-sm mt-4 sm:mt-0">
+                <div className="mb-6 text-sm text-gray-600">
                   <span className="font-medium">Week Dates:</span>{" "}
-                  {data.weekStartDate} - {data.weekEndDate}
+                  {formatDate(data.weekStartDate)} -{" "}
+                  {formatDate(data.weekEndDate)}
                 </div>
               )}
-            </div>
 
-            <div className="p-6">
               {loading && (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
-                  <p className="mt-4 text-lg text-indigo-600">
-                    Loading Weekly Report...
-                  </p>
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
                 </div>
               )}
 
               {error && (
-                <div className="text-center py-8">
-                  <svg
-                    className="mx-auto h-12 w-12 text-red-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="mt-4 text-lg text-red-600">Error: {error}</p>
+                <div
+                  className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6"
+                  role="alert"
+                >
+                  <p className="font-bold">Error</p>
+                  <p>{error}</p>
                 </div>
               )}
 
               {!loading && !error && !data && (
-                <div className="text-center py-8">
+                <div className="text-center py-12">
                   <svg
-                    className="mx-auto h-12 w-12 text-indigo-400"
+                    className="mx-auto h-12 w-12 text-gray-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 000-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                      strokeWidth="2"
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 01-.707-.293l-2.414-2.414a1 1 0 00-.707-.293h-3.172a1 1 0 00-.707.293l-2.414 2.414A1 1 0 016.586 13H4"
                     />
                   </svg>
-                  <p className="mt-4 text-lg text-indigo-600">
-                    No data available for the selected week.
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    No data available
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    There's no data available for the selected week.
                   </p>
                 </div>
               )}
 
               {!loading && !error && data && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {data.attendanceSummary.map((employee) => (
                     <div
                       key={employee.employeeId}
-                      className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 shadow-md transition-all duration-300 hover:shadow-lg"
+                      className="bg-white overflow-hidden shadow rounded-lg"
                     >
-                      <h3 className="text-xl font-bold mb-4 text-indigo-900 truncate">
-                        {employee.employee.name}
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                        {[
-                          { label: "Present", value: employee.daysPresent },
-                          { label: "Absent", value: employee.daysAbsent },
-                          {
-                            label: "Extra Work",
-                            value: employee.fullDaysWithExtraWork.length,
-                          },
-
-                          { label: "Half Days", value: employee.halfDays },
-                          {
-                            label: "Cash",
-                            value: `₹${employee.employee.paymentDivision.cash}`,
-                          },
-                        ].map((item, index) => (
-                          <div
-                            key={index}
-                            className="bg-white rounded-lg p-3 text-center shadow-sm"
-                          >
-                            <p className="font-medium text-indigo-600 mb-1">
-                              {item.label}
-                            </p>
-                            <p className="font-bold text-2xl text-indigo-900">
-                              {item.value}
-                            </p>
-                          </div>
-                        ))}
+                      <div className="px-4 py-5 sm:p-6">
+                        <h3 className="text-2xl leading-6 font-medium text-gray-900 truncate">
+                          {employee.employee.name}
+                        </h3>
+                        <div className="mt-5 grid grid-cols-2 gap-5">
+                          {[
+                            { label: "Present", value: employee.daysPresent },
+                            { label: "Absent", value: employee.daysAbsent },
+                            {
+                              label: "Extra Work",
+                              value: employee.fullDaysWithExtraWork.length,
+                            },
+                            { label: "Half Days", value: employee.halfDays },
+                            {
+                              label: "Cash",
+                              value: `₹${employee.employee.paymentDivision.cash}`,
+                            },
+                          ].map((item, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-50 px-4 py-5 sm:p-6"
+                            >
+                              <dt className="text-sm font-medium text-gray-500 truncate">
+                                {item.label}
+                              </dt>
+                              <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                                {item.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <button
-                        disabled={employee.paid}
-                        onClick={() => {
-                          if (employee.paid) return; // Prevent the onClick handler if employee is already paid
-                          handlePay(employee.employeeId, employee);
-                        }}
-                        className={`w-full px-4 py-2 text-white text-lg font-semibold rounded-lg shadow-md transition-all duration-300 ${
-                          employee.paid
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75"
-                        }`}
-                      >
-                        {employee.paid ? "Paid" : "Pay"}
-                      </button>
+                      <div className="bg-gray-50 px-4 py-4 sm:px-6">
+                        <button
+                          disabled={employee.paid}
+                          onClick={() => {
+                            if (!employee.paid)
+                              handlePay(employee.employeeId, employee);
+                          }}
+                          className={`w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                            employee.paid
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          }`}
+                        >
+                          {employee.paid ? "Paid" : "Pay"}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -223,7 +224,7 @@ const WeeklyReportPage = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

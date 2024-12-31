@@ -154,7 +154,7 @@ const MonthlyReportPage = () => {
                       <th className="border border-gray-300 px-4 py-2">
                         Extra Work Days
                       </th>
-                    
+
                       <th className="border border-gray-300 px-4 py-2">
                         Half Days
                       </th>
@@ -176,12 +176,12 @@ const MonthlyReportPage = () => {
                           {emp.totalDaysAbsent}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
-                          ${emp.totalAmountPaid.toFixed(2)}
+                          ₹{emp.totalAmountPaid.toFixed(2)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalExtraWorkDays}
                         </td>
-                       
+
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalHalfDays}
                         </td>

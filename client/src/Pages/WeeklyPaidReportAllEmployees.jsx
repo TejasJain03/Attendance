@@ -145,8 +145,8 @@ const WeeklyReportPage = () => {
               <div className="mb-4 text-center text-gray-700">
                 <p>
                   <strong>Report Duration:</strong>{" "}
-                  {new Date(reportDates.startDate).toLocaleDateString()} -{" "}
-                  {new Date(reportDates.endDate).toLocaleDateString()}
+                  {new Date(reportDates.startDate).toLocaleDateString("en-GB")}{" "}
+                  - {new Date(reportDates.endDate).toLocaleDateString("en-GB")}
                 </p>
               </div>
             )}
@@ -200,7 +200,7 @@ const WeeklyReportPage = () => {
                             {emp.employeeName}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ${emp.cash.toFixed(2)}
+                            ₹{emp.cash.toFixed(2)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
                             {emp.daysPresent}
@@ -215,13 +215,13 @@ const WeeklyReportPage = () => {
                             {emp.halfDays || "None"}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ${emp.totalAmount.toFixed(2)}
+                            ₹{emp.totalAmount.toFixed(2)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ${emp.amountDeducted.toFixed(2)}
+                            ₹{emp.amountDeducted.toFixed(2)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ${emp.amountPaid.toFixed(2)}
+                            ₹{emp.amountPaid.toFixed(2)}
                           </td>
                         </tr>
                       ))

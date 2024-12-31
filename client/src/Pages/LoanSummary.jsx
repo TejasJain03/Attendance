@@ -62,7 +62,7 @@ const LoanSummaryPage = () => {
                     </p>
                     <p className="mt-1 text-lg font-semibold text-gray-900">
                       {totalLoanAmount > 0
-                        ? `$${totalLoanAmount.toFixed(2)}`
+                        ? `₹${totalLoanAmount.toFixed(2)}`
                         : "No loan taken"}
                     </p>
                   </div>
@@ -90,7 +90,7 @@ const LoanSummaryPage = () => {
                         {employee.loan.map((loan, index) => (
                           <tr key={index}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              ${loan.amount.toFixed(2)}
+                              ₹{loan.amount.toFixed(2)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {new Date(loan.dateTaken).toLocaleDateString()}
@@ -159,7 +159,7 @@ const LoanSummaryPage = () => {
               <div className="bg-white rounded-lg w-full max-w-md p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-semibold text-gray-900">
-                    Repay Loan of ${selectedLoan?.amount.toFixed(2)}
+                    Repay Loan of ₹{selectedLoan?.amount.toFixed(2)}
                   </h2>
                   <button
                     onClick={closeRepayModal}

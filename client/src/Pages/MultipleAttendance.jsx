@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "../axios";
-import Navbar from "../Components/Navbar"; // Import Navbar
+import Navbar from "../Components/Navbar";
 
 const AttendancePage = () => {
   const [employees, setEmployees] = useState([]);
@@ -8,14 +8,13 @@ const AttendancePage = () => {
   const [attendanceDetails, setAttendanceDetails] = useState({
     status: "Present",
     attendanceType: "Full Day",
-    extraWorkHours: 0, // Added extraWorkHours property
+    extraWorkHours: 0,
   });
   const [attendanceDate, setAttendanceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [showPopup, setShowPopup] = useState(false);
 
-  // Fetch employees from API
   useEffect(() => {
     axios
       .get("/employees")
@@ -27,7 +26,6 @@ const AttendancePage = () => {
       });
   }, []);
 
-  // Handle employee card selection
   const handleEmployeeSelect = (employeeId) => {
     setSelectedEmployees((prev) =>
       prev.includes(employeeId)
@@ -36,18 +34,15 @@ const AttendancePage = () => {
     );
   };
 
-  // Handle attendance details change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setAttendanceDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle date change
   const handleDateChange = (e) => {
     setAttendanceDate(e.target.value);
   };
 
-  // Submit attendance data
   const handleSubmitAttendance = () => {
     const attendanceData = {
       employeeIds: selectedEmployees,
@@ -62,7 +57,7 @@ const AttendancePage = () => {
         setAttendanceDetails({
           status: "Present",
           attendanceType: "Full Day",
-          extraWorkHours: 0, // Reset extraWorkHours
+          extraWorkHours: 0,
         });
         setAttendanceDate(new Date().toISOString().split("T")[0]);
         setShowPopup(false);
@@ -73,18 +68,17 @@ const AttendancePage = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">
-            Employee Attendance
-          </h2>
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
+          Employee Attendance
+        </h2>
 
-          {/* Separate Date Picker */}
-          <div className="mb-6 flex justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Date
               </label>
               <input
@@ -94,59 +88,64 @@ const AttendancePage = () => {
                 className="w-48 border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               />
             </div>
-          </div>
-
-          {/* Employee Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {employees.map((employee) => (
-              <div
-                key={employee._id}
-                className={`p-6 rounded-lg shadow-lg bg-white cursor-pointer border ${
-                  selectedEmployees.includes(employee._id)
-                    ? "border-indigo-500"
-                    : "border-gray-300"
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedEmployees.includes(employee._id)}
-                    onChange={() => handleEmployeeSelect(employee._id)}
-                    className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">
-                      {employee.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">{employee.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Submit Button */}
-          <div className="mt-8 text-center">
             <button
               onClick={() => setShowPopup(true)}
-              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition"
+              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
               disabled={selectedEmployees.length === 0}
             >
               Submit Attendance
             </button>
           </div>
 
-          {/* Popup for Attendance Details */}
-          {showPopup && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6">
-              <div className="bg-white rounded-lg p-8 max-w-sm w-full">
-                <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                  Attendance Details
-                </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {employees.map((employee) => (
+              <div
+                key={employee._id}
+                className={`p-4 rounded-lg shadow-md bg-white cursor-pointer border-2 transition-all duration-300 ${
+                  selectedEmployees.includes(employee._id)
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-gray-200 hover:border-indigo-300"
+                }`}
+                onClick={() => handleEmployeeSelect(employee._id)}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-xl font-semibold text-indigo-600">
+                        {employee.name.charAt(0)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {employee.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">{employee.role}</p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.includes(employee._id)}
+                      onChange={() => {}}
+                      className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Status Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600">
+        {showPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full">
+              <h3 className="text-2xl font-semibold text-gray-800 mb-6">
+                Attendance Details
+              </h3>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Status
                   </label>
                   <select
@@ -160,9 +159,8 @@ const AttendancePage = () => {
                   </select>
                 </div>
 
-                {/* Attendance Type Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Attendance Type
                   </label>
                   <select
@@ -176,9 +174,8 @@ const AttendancePage = () => {
                   </select>
                 </div>
 
-                {/* Extra Hours Input */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Extra Hours (Max 4)
                   </label>
                   <input
@@ -192,32 +189,28 @@ const AttendancePage = () => {
                   />
                 </div>
 
-                {/* Submit Button in Popup */}
-                <div className="mt-6">
-                  <button
-                    onClick={handleSubmitAttendance}
-                    className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
-                  >
-                    Submit Attendance
-                  </button>
-                </div>
-
-                {/* Close Popup Button */}
-                <div className="mt-4 text-center">
+                <div className="flex justify-end space-x-4">
                   <button
                     onClick={() => setShowPopup(false)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    Close
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitAttendance}
+                    className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Submit
                   </button>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
 export default AttendancePage;
+

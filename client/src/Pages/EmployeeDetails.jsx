@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
@@ -174,14 +175,28 @@ const BasicCalendarExample = () => {
                 </div>
               </div>
               {/* Redirect Buttons */}
-              <div className="mt-8 space-y-4">
+              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() =>
                     navigate(`/employee/loan-details/${employeeId}`)
                   }
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none"
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none"
                 >
-                  View Loan Details
+                  Loan Details
+                </button>
+
+                <button
+                  onClick={() => navigate(`/employee/update/${employeeId}`)}
+                  className="bg-yellow-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none"
+                >
+                  Update Details
+                </button>
+
+                <button
+                  onClick={() => handleDelete(employeeId)} // Replace with your delete function
+                  className="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-500 transition duration-300 ease-in-out focus:outline-none"
+                >
+                  Delete Employee
                 </button>
               </div>
             </div>
