@@ -12,7 +12,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-900 text-white p-4 shadow-md">
+    <nav className="bg-indigo-700 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         {/* Dashboard link with home icon */}
         <div className="flex items-center space-x-4">
@@ -25,7 +25,7 @@ const Navbar = () => {
         <div>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white py-2 px-4 rounded-full hover:bg-red-700 flex items-center space-x-2"
+            className="bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-700 flex items-center space-x-2"
           >
             <i className="bx bx-log-out text-3xl"></i> {/* Box Icon for logout */}
             <span className="hidden md:inline">Logout</span> {/* Text hidden on mobile */}

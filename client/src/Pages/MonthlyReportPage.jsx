@@ -41,7 +41,6 @@ const MonthlyReportPage = () => {
       "Days Absent": emp.totalDaysAbsent,
       "Total Amount Paid": emp.totalAmountPaid,
       "Extra Work Days": emp.totalExtraWorkDays,
-      "Full Days Without Extra Work": emp.totalFullDaysWithoutExtraWork,
       "Half Days": emp.totalHalfDays,
     }));
 
@@ -66,7 +65,7 @@ const MonthlyReportPage = () => {
       { wch: 15 },
       { wch: 20 },
       { wch: 15 },
-      { wch: 25 },
+     
       { wch: 15 },
     ];
     worksheet["!cols"] = columnWidths;
@@ -175,9 +174,15 @@ const MonthlyReportPage = () => {
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalDaysAbsent}
                         </td>
+
                         <td className="border border-gray-300 px-4 py-2 text-center">
-                          ₹{emp.totalAmountPaid.toFixed(2)}
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(emp.totalAmountPaid)}
                         </td>
+
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalExtraWorkDays}
                         </td>

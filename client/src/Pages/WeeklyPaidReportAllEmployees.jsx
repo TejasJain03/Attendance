@@ -200,7 +200,11 @@ const WeeklyReportPage = () => {
                             {emp.employeeName}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₹{emp.cash.toFixed(2)}
+                            ₹{" "}
+                            {new Intl.NumberFormat("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(emp.cash)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
                             {emp.daysPresent}
@@ -215,13 +219,25 @@ const WeeklyReportPage = () => {
                             {emp.halfDays || "None"}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₹{emp.totalAmount.toFixed(2)}
+                            ₹{" "}
+                            {new Intl.NumberFormat("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(emp.totalAmount)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₹{emp.amountDeducted.toFixed(2)}
+                            ₹{" "}
+                            {new Intl.NumberFormat("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(emp.amountDeducted)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₹{emp.amountPaid.toFixed(2)}
+                            ₹{" "}
+                            {new Intl.NumberFormat("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(emp.amountPaid)}
                           </td>
                         </tr>
                       ))
