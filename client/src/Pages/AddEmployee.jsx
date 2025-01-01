@@ -3,8 +3,9 @@ import axios from "../axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ROLES } from "../constants/constants"; // Import the ROLES constant
+import { ROLES } from "../constants/constants";
 import Navbar from "../Components/Navbar";
+
 const EmployeeForm = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -17,7 +18,7 @@ const EmployeeForm = () => {
     },
   });
 
-  const [loading, setLoading] = useState(false); // For submit button state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -46,180 +47,155 @@ const EmployeeForm = () => {
     }
 
     try {
-      setLoading(true); // Start loading
-      console.log("Submitting form data: ", formData);
-
+      setLoading(true);
       const response = await axios.post("/create-employee", formData);
-
       console.log("Employee created successfully:", response.data);
-      toast.success(
-        "Employee created successfully!",
-        (onclose = () => {
-          navigate("/admin/employee-management");
-        })
-      );
+      toast.success("Employee created successfully!", {
+        onClose: () => navigate("/admin/employee-management"),
+      });
     } catch (error) {
       console.error("Error creating employee:", error);
-      toast.error(
-        "Error occurred while creating the employee. Please try again."
-      );
+      toast.error("Error occurred while creating the employee. Please try again.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center p-6">
-        <div className="bg-white shadow-xl rounded-lg p-10 max-w-lg w-full">
-          <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
-            Employee Form
-          </h2>
-          <form className="space-y-8" onSubmit={handleSubmit}>
-            {/* Employee Name */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter employee name"
-                className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                required
-              />
-            </div>
+      <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+            <div className="px-4 py-8 sm:px-10">
+              <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-8">
+                New Employee Registration
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      id="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                      placeholder="Enter employee name"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      name="phoneNumber"
+                      id="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="perDayRate" className="block text-sm font-medium text-gray-700">
+                      Per Day Rate
+                    </label>
+                    <input
+                      type="number"
+                      name="perDayRate"
+                      id="perDayRate"
+                      value={formData.perDayRate}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                      placeholder="Enter rate"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                    >
+                      <option value="" disabled className="text-gray-500">
+                        Select a role
+                      </option>
+                      {ROLES.map((role) => (
+                        <option key={role} value={role} className="text-gray-800">
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-            {/* Phone Number */}
-            <div>
-              <label
-                htmlFor="phoneNumber"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
-                Phone Number
-              </label>
-              <input
-                type="text"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                placeholder="Enter phone number"
-                className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                required
-              />
-            </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Payment Division</h3>
+                  <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="account" className="block text-sm font-medium text-gray-700">
+                        Account
+                      </label>
+                      <input
+                        type="number"
+                        name="paymentDivision.account"
+                        id="account"
+                        value={formData.paymentDivision.account}
+                        onChange={handleChange}
+                        required
+                        className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                        placeholder="Account payment"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="cash" className="block text-sm font-medium text-gray-700">
+                        Cash
+                      </label>
+                      <input
+                        type="number"
+                        name="paymentDivision.cash"
+                        id="cash"
+                        value={formData.paymentDivision.cash}
+                        onChange={handleChange}
+                        required
+                        className="mt-1 block w-full border-2 border-transparent bg-gray-50 rounded-xl shadow-sm py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                        placeholder="Cash payment"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-            {/* Per Day Rate */}
-            <div>
-              <label
-                htmlFor="perDayRate"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
-                Per Day Rate
-              </label>
-              <input
-                type="number"
-                id="perDayRate"
-                name="perDayRate"
-                value={formData.perDayRate}
-                onChange={handleChange}
-                placeholder="Enter rate"
-                className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                required
-              />
+                <div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                  >
+                    {loading ? (
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : null}
+                    {loading ? "Creating Employee..." : "Create Employee"}
+                  </button>
+                </div>
+              </form>
             </div>
-
-            {/* Role Field */}
-            <div>
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-gray-600 mb-2"
-              >
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                required
-              >
-                <option value="" disabled>
-                  Select a role
-                </option>
-                {ROLES.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Payment Division */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">
-                Payment Division
-              </h3>
-              {/* Account */}
-              <div>
-                <label
-                  htmlFor="account"
-                  className="block text-sm font-medium text-gray-600 mb-2"
-                >
-                  Account
-                </label>
-                <input
-                  type="number"
-                  id="account"
-                  name="paymentDivision.account"
-                  value={formData.paymentDivision.account}
-                  onChange={handleChange}
-                  placeholder="Account payment"
-                  className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  required
-                />
-              </div>
-              {/* Cash */}
-              <div className="mt-6">
-                <label
-                  htmlFor="cash"
-                  className="block text-sm font-medium text-gray-600 mb-2"
-                >
-                  Cash
-                </label>
-                <input
-                  type="number"
-                  id="cash"
-                  name="paymentDivision.cash"
-                  value={formData.paymentDivision.cash}
-                  onChange={handleChange}
-                  placeholder="Cash payment"
-                  className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105 disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? "Submitting..." : "Submit"}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </>
@@ -227,3 +203,4 @@ const EmployeeForm = () => {
 };
 
 export default EmployeeForm;
+
