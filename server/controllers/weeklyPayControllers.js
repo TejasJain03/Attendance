@@ -61,6 +61,29 @@ exports.createWeeklyPay = async (req, res) => {
   });
 };
 
+exports.getWeeklyPayForAllEmployeeWeekAndMonth = async (req, res) => {
+  const { employeeId, weekNumber, month } = req.params;
+  const weeklyPaidRecord = await WeeklyPay.find({
+    month,
+    weekNumber,
+    employeeId,
+  });
+  if (!weeklyPaidRecord || weeklyPaidRecord.length === 0) {
+    return res.json({
+      status: "success",
+      message: "Weekly pay record not found for the specified parameters.",
+      paid: false,
+    });
+  }
+
+  res.json({
+    status: "success",
+    message: "Weekly pay record retrieved successfully.",
+    paid: true,
+    weeklyPaidRecord,
+  });
+};
+
 exports.getWeeklyPayForAllEmployees = async (req, res) => {
   const { month, weekNumber } = req.params;
 
@@ -168,7 +191,10 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
     // Loop through each employee and calculate their monthly report
     for (const employee of employees) {
       // Fetch weekly pay data for the specific month for each employee
-      const weeklyPays = await WeeklyPay.find({ employeeId: employee._id, month });
+      const weeklyPays = await WeeklyPay.find({
+        employeeId: employee._id,
+        month,
+      });
 
       if (weeklyPays.length === 0) continue;
 
@@ -208,10 +234,14 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
     if (reports.length > 0) {
       return res.status(200).json({ reports });
     } else {
-      return res.status(404).json({ message: "No reports found for the given month." });
+      return res
+        .status(404)
+        .json({ message: "No reports found for the given month." });
     }
   } catch (error) {
-    console.error('Error generating monthly pay report:', error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error("Error generating monthly pay report:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };

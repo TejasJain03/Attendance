@@ -27,11 +27,36 @@ const PaymentPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [payResponse, loanResponse] = await Promise.all([
-          axios.get(`/employees/${employeeId}/get-weeklyPay/${month}`),
-          axios.get(`/employees/${employeeId}`),
-        ]);
+        const [payCheckResponse, payResponse, loanResponse] = await Promise.all(
+          [
+            axios
+              .get(
+                `/employees/${employeeId}/get-weeklyPay/${month}/${weekNumber}`
+              )
+              .catch((error) => {
+                console.error("Error in weekly pay check API:", error);
+                return null; // Return null or a fallback value
+              }),
+            axios
+              .get(`/employees/${employeeId}/get-weeklyPay/${month}`)
+              .catch((error) => {
+                console.error("Error in monthly pay API:", error);
+                return null; // Return null or a fallback value
+              }),
+            axios.get(`/employees/${employeeId}`).catch((error) => {
+              console.error("Error in employee details API:", error);
+              return null; // Return null or a fallback value
+            }),
+          ]
+        );
 
+        if (payCheckResponse.data.paid) {
+          console.log(payCheckResponse.data.paid)
+          toast.info("Payment has already been processed for this week.");
+          setRemainingAmount(-1);
+          setTotalAmount(-1);
+          return;
+        }
         const result = calculateSalary(
           state.employeeSummary,
           payResponse.data.totalDaysPresent
@@ -40,7 +65,6 @@ const PaymentPage = () => {
         setLoanDetails(loanResponse.data.employee.loan || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to fetch payment details.");
       } finally {
         setLoading(false);
       }
@@ -218,13 +242,19 @@ const PaymentPage = () => {
             </div>
           </div>
           <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-            <button
-              onClick={handlePay}
-              disabled={loading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {loading ? "Processing..." : "Process Payment"}
-            </button>
+            {totalAmount === -1 ? (
+              <p className="text-lg font-semibold text-gray-600">
+                Payment already processed for this week.
+              </p>
+            ) : (
+              <button
+                onClick={handlePay}
+                disabled={loading || totalAmount === 0}
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                {loading ? "Processing..." : "Process Payment"}
+              </button>
+            )}
           </div>
         </div>
       </div>

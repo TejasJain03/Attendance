@@ -9,6 +9,11 @@ router.post(
 );
 
 router.get(
+  "/employees/:employeeId/get-weeklyPay/:month/:weekNumber",
+  catchAsync(weeklyPayController.getWeeklyPayForAllEmployeeWeekAndMonth)
+);
+
+router.get(
   "/employees/get-weeklyPay/:month/:weekNumber",
   catchAsync(weeklyPayController.getWeeklyPayForAllEmployees)
 );
