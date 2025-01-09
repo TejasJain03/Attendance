@@ -177,71 +177,75 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
     return res.status(400).json({ message: "Month is required." });
   }
 
-  try {
-    // Fetch all employees
-    const employees = await Employee.find();
+  // Fetch all employees
+  const employees = await Employee.find();
 
-    if (!employees || employees.length === 0) {
-      return res.status(404).json({ message: "No employees found." });
+  if (!employees || employees.length === 0) {
+    return res.status(404).json({ message: "No employees found." });
+  }
+
+  // Initialize an empty array for reports
+  const reports = [];
+
+  // Loop through each employee and calculate their monthly report
+  for (const employee of employees) {
+    // Fetch weekly pay data for the specific month for each employee
+    const weeklyPays = await WeeklyPay.find({
+      employeeId: employee._id,
+      month,
+    });
+
+    if (weeklyPays.length === 0) continue;
+
+    // Calculate the totals for the employee's report
+    let totalDaysPresent = 0;
+    let totalDaysAbsent = 0;
+    let totalAmountPaid = 0;
+    let totalExtraWorkDays = 0;
+    let totalFullDaysWithoutExtraWork = 0;
+    let totalHalfDays = 0;
+    let totalAmountDeducted = 0;
+
+    // Loop through weekly pay data to accumulate totals
+    for (const record of weeklyPays) {
+      totalDaysPresent += record.daysPresent;
+      totalDaysAbsent += record.daysAbsent;
+      totalAmountPaid += record.amountPaid;
+      totalExtraWorkDays += record.fullDaysWithExtraWork.length;
+      totalFullDaysWithoutExtraWork += record.fullDaysWithoutExtraWork;
+      totalHalfDays += record.halfDays;
+      totalAmountDeducted += record.amountDeducted || 0; // Accumulate deductions
     }
 
-    // Initialize an empty array for reports
-    const reports = [];
+    // Calculate total loan amount and loan left
+    const totalLoan = employee.loan.reduce((sum, loan) => sum + loan.amount, 0); // Sum all loan amounts
+    const loanLeft = Math.max(0, totalLoan - totalAmountDeducted); // Ensure loanLeft is not negative
 
-    // Loop through each employee and calculate their monthly report
-    for (const employee of employees) {
-      // Fetch weekly pay data for the specific month for each employee
-      const weeklyPays = await WeeklyPay.find({
-        employeeId: employee._id,
-        month,
-      });
+    // Push the calculated report for this employee into the reports array
+    reports.push({
+      employeeId: employee._id,
+      employeeName: employee.name,
+      phoneNumber: employee.phoneNumber, // Adding phone number to the report
+      role: employee.role, // Adding role to the report
+      month,
+      totalDaysPresent,
+      totalDaysAbsent,
+      totalAmountPaid,
+      totalExtraWorkDays,
+      totalFullDaysWithoutExtraWork,
+      totalHalfDays,
+      totalAmountDeducted, // Include amount deducted in the report
+      totalLoan, // Include total loan in the report
+      loanLeft, // Include loan left in the report
+    });
+  }
 
-      if (weeklyPays.length === 0) continue;
-
-      // Calculate the totals for the employee's report
-      let totalDaysPresent = 0;
-      let totalDaysAbsent = 0;
-      let totalAmountPaid = 0;
-      let totalExtraWorkDays = 0;
-      let totalFullDaysWithoutExtraWork = 0;
-      let totalHalfDays = 0;
-
-      // Loop through weekly pay data to accumulate totals
-      for (const record of weeklyPays) {
-        totalDaysPresent += record.daysPresent;
-        totalDaysAbsent += record.daysAbsent;
-        totalAmountPaid += record.amountPaid;
-        totalExtraWorkDays += record.fullDaysWithExtraWork.length;
-        totalFullDaysWithoutExtraWork += record.fullDaysWithoutExtraWork;
-        totalHalfDays += record.halfDays;
-      }
-
-      // Push the calculated report for this employee into the reports array
-      reports.push({
-        employeeId: employee._id,
-        employeeName: employee.name,
-        month,
-        totalDaysPresent,
-        totalDaysAbsent,
-        totalAmountPaid,
-        totalExtraWorkDays,
-        totalFullDaysWithoutExtraWork,
-        totalHalfDays,
-      });
-    }
-
-    // Return the final reports
-    if (reports.length > 0) {
-      return res.status(200).json({ reports });
-    } else {
-      return res
-        .status(404)
-        .json({ message: "No reports found for the given month." });
-    }
-  } catch (error) {
-    console.error("Error generating monthly pay report:", error);
+  // Return the final reports
+  if (reports.length > 0) {
+    return res.status(200).json({ reports });
+  } else {
     return res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
+      .status(404)
+      .json({ message: "No reports found for the given month." });
   }
 };

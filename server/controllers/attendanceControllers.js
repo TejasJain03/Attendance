@@ -132,7 +132,7 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
     // Fetch all daily attendance records within the week range
     const dailyAttendanceRecords = await DailyAttendance.find({
       date: {
-        $gte: weekStartDate.format("YYYY-MM-DD"), 
+        $gte: weekStartDate.format("YYYY-MM-DD"),
         $lte: weekEndDate.format("YYYY-MM-DD"),
       },
     });
@@ -350,5 +350,59 @@ exports.getAttendanceForMonth = async (req, res) => {
   return res.status(200).json({
     success: true,
     data: attendanceRecords,
+  });
+};
+
+exports.updateMultipleDatesAttendance = async (req, res) => {
+  const { employeeId } = req.params; // Get employeeId from params
+  const { dates, status, attendanceType, extraWorkHours } = req.body; // Destructure required data from body
+
+  if (!dates || !Array.isArray(dates) || dates.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Dates array is required and must be valid." });
+  }
+
+  // Iterate over each date in the dates array and update the attendance for each day
+  const updatedAttendances = [];
+
+  for (let date of dates) {
+    // Extract the month in "YYYY-MM" format
+    const month = date.slice(0, 7); // Assuming date is in "YYYY-MM-DD" format
+
+    const existingAttendance = await DailyAttendance.findOne({
+      employeeId,
+      date,
+    });
+
+    if (existingAttendance) {
+      // Update the existing attendance
+      existingAttendance.status = status;
+      existingAttendance.attendanceType = attendanceType;
+      existingAttendance.extraWorkHours =
+        attendanceType === "Full Day" ? extraWorkHours : null;
+      existingAttendance.month = month;
+
+      await existingAttendance.save();
+      updatedAttendances.push(existingAttendance);
+    } else {
+      // If there's no existing attendance, create a new one
+      const newAttendance = new DailyAttendance({
+        employeeId,
+        date,
+        month,
+        status,
+        attendanceType,
+        extraWorkHours: attendanceType === "Full Day" ? extraWorkHours : null,
+      });
+
+      await newAttendance.save();
+      updatedAttendances.push(newAttendance);
+    }
+  }
+
+  return res.status(200).json({
+    message: "Attendance updated successfully.",
+    data: updatedAttendances,
   });
 };

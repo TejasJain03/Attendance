@@ -26,6 +26,11 @@ router.put(
   catchAsync(attendanceController.updateDailyAttendanceForMultipleEmployees)
 );
 
+router.put(
+  "/employees/:employeeId/multiple-attendance",
+  catchAsync(attendanceController.updateMultipleDatesAttendance)
+);
+
 router.get(
   "/employees/weekly-report/:month/:weekNumber",
   catchAsync(attendanceController.getWeeklyAttendanceForAllEmployees)

@@ -19,6 +19,7 @@ import WeeklyPaidReportAllEmployees from "./Pages/WeeklyPaidReportAllEmployees";
 import MonthlyReportPage from "./Pages/MonthlyReportPage";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import UpdateEmployee from "./Pages/UpdateEmployee";
+import MultpleDatesAttendances from "./Pages/MultipleDatesAttendances";
 
 const App = () => {
   return (
@@ -71,6 +72,10 @@ const App = () => {
           element={<ProtectedRoute element={<MultipleAttendance />} />}
         />
         <Route
+          path="/admin/multiple-date-attendance/:employeeId"
+          element={<ProtectedRoute element={<MultpleDatesAttendances />} />}
+        />
+        <Route
           path="/admin/weekly-report"
           element={<ProtectedRoute element={<WeeklyReportPage />} />}
         />
@@ -89,7 +94,7 @@ const App = () => {
       {/* ToastContainer for global toast notifications */}
       <ToastContainer
         position="top-right"
-        autoClose={1000} // Auto close after 3 seconds
+        autoClose={500} 
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

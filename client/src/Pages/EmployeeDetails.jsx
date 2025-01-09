@@ -5,14 +5,15 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "../axios";
 import EmployeeDetails from "../Components/Employee";
-import Navbar from "../Components/Navbar"; 
-import { toast } from "react-toastify"; 
+import Navbar from "../Components/Navbar";
+import { toast } from "react-toastify";
 
 const BasicCalendarExample = () => {
   const [date, setDate] = useState(new Date());
   const { employeeId } = useParams();
   const [attendanceData, setAttendanceData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false); // To manage delete popup visibility
   const [selectedDate, setSelectedDate] = useState(null);
   const [attendanceType, setAttendanceType] = useState("");
   const [extraWorkHours, setExtraWorkHours] = useState(0); // Track extra hours input
@@ -101,12 +102,16 @@ const BasicCalendarExample = () => {
     }
     setIsPopupOpen(false);
   };
+  const handleDeleteClick = () => {
+    setIsDeletePopupOpen(true); // Open delete confirmation popup
+  };
 
   const handleDelete = async (employeeId) => {
     try {
-      await axios.delete(`/employees/${employeeId}`);
-      toast.success("Employee deleted successfully!", {
-        onClose: () => navigate("/admin/employee-management"),
+      await axios.delete(`/employees/${employeeId}`).then(() => {
+        toast.success("Employee deleted successfully!", {
+          onClose: () => navigate("/admin/employee-management"),
+        });
       });
     } catch (error) {
       console.error("Error deleting employee:", error);
@@ -190,31 +195,60 @@ const BasicCalendarExample = () => {
                 </div>
               </div>
               {/* Redirect Buttons */}
-              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4">
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() =>
+                    navigate(`/admin/multiple-date-attendance/${employeeId}`)
+                  }
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none w-full"
+                >
+                  Multiple Dates
+                </button>
                 <button
                   onClick={() =>
                     navigate(`/employee/loan-details/${employeeId}`)
                   }
-                  className="bg-blue-900 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none"
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none w-full"
                 >
                   Loan Details
                 </button>
-
                 <button
                   onClick={() =>
                     navigate(`/admin/update-employee/${employeeId}`)
                   }
-                  className="bg-yellow-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none"
+                  className="bg-yellow-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-yellow-600 transition duration-300 ease-in-out focus:outline-none w-full"
                 >
                   Update Details
                 </button>
-
                 <button
-                  onClick={() => handleDelete(employeeId)} // Replace with your delete function
-                  className="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-500 transition duration-300 ease-in-out focus:outline-none"
+                  onClick={() => handleDeleteClick()}
+                  className="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-500 transition duration-300 ease-in-out focus:outline-none w-full"
                 >
                   Delete Employee
                 </button>
+                {isDeletePopupOpen && (
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+                      <h2 className="text-xl font-semibold text-center mb-4">
+                        Are you sure you want to delete this employee?
+                      </h2>
+                      <div className="flex justify-center gap-4">
+                        <button
+                          onClick={() => handleDelete(employeeId)}
+                          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-500 transition duration-300"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setIsDeletePopupOpen(false)} // Close the popup without deleting
+                          className="bg-gray-300 text-black px-6 py-2 rounded-lg hover:bg-gray-200 transition duration-300"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

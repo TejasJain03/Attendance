@@ -34,15 +34,24 @@ const MonthlyReportPage = () => {
   }, [month]);
 
   const handleDownloadExcel = () => {
-    const formattedData = employees.map((emp, index) => ({
-      "Sr. No.": index + 1,
-      "Employee Name": emp.employeeName,
-      "Days Present": emp.totalDaysPresent,
-      "Days Absent": emp.totalDaysAbsent,
-      "Total Amount Paid": emp.totalAmountPaid,
-      "Extra Work Days": emp.totalExtraWorkDays,
-      "Half Days": emp.totalHalfDays,
-    }));
+    const formattedData = employees.map((emp, index) => {
+      const accountValue = 5760; // Account value for every employee
+      const finalAmount = emp.totalAmountPaid + accountValue;
+
+      return {
+        "Sr. No.": index + 1,
+        "Employee Name": emp.employeeName,
+        "Days Present": emp.totalDaysPresent,
+        "Days Absent": emp.totalDaysAbsent,
+        "Total Amount Paid": emp.totalAmountPaid + accountValue, // Add account value to total amount
+        Account: accountValue, // Add Account column with fixed value 5760
+        "Final Amount": finalAmount,
+        "Extra Work Days": emp.totalExtraWorkDays,
+        "Half Days": emp.totalHalfDays,
+        "Total Loan Deduct": emp.totalLoanDeduct || 0,
+        "Loan Left": emp.loanLeft || 0,
+      };
+    });
 
     // Custom headers
     const customHeader = [
@@ -59,20 +68,23 @@ const MonthlyReportPage = () => {
 
     // Adjust column widths
     const columnWidths = [
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 15 },
-     
-      { wch: 15 },
+      { wch: 10 }, // Sr. No.
+      { wch: 20 }, // Employee Name
+      { wch: 15 }, // Days Present
+      { wch: 15 }, // Days Absent
+      { wch: 20 }, // Total Amount Paid
+      { wch: 15 }, // Account
+      { wch: 20 }, // Final Amount
+      { wch: 15 }, // Extra Work Days
+      { wch: 15 }, // Half Days
+      { wch: 20 }, // Total Loan Deduct
+      { wch: 20 }, // Loan Left
     ];
     worksheet["!cols"] = columnWidths;
 
     // Merge cells for main title
     worksheet["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Merge A1:H1 for "Monthly Report"
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, // Merge A1:K1 for "Monthly Report"
     ];
 
     // Create workbook and append worksheet
@@ -87,7 +99,7 @@ const MonthlyReportPage = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="max-w-8xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-indigo-600 px-6 py-4">
             <h2 className="text-2xl font-bold text-white text-center">
@@ -148,14 +160,25 @@ const MonthlyReportPage = () => {
                         Days Absent
                       </th>
                       <th className="border border-gray-300 px-4 py-2">
-                        Total Amount Paid
+                        Total Cash Paid
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Account
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Final Amount
                       </th>
                       <th className="border border-gray-300 px-4 py-2">
                         Extra Work Days
                       </th>
-
                       <th className="border border-gray-300 px-4 py-2">
                         Half Days
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Total Loan Deducted
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Loan Left
                       </th>
                     </tr>
                   </thead>
@@ -174,21 +197,49 @@ const MonthlyReportPage = () => {
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalDaysAbsent}
                         </td>
-
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           ₹{" "}
                           {new Intl.NumberFormat("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                          }).format(emp.totalAmountPaid)}
+                          }).format(emp.totalAmountPaid)}{" "}
+                          {/* Add 5760 */}
                         </td>
-
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(5760)}{" "}
+                          {/* Account column */}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(emp.totalAmountPaid + 5760)}{" "}
+                          {/* Final Amount */}
+                        </td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalExtraWorkDays}
                         </td>
-
                         <td className="border border-gray-300 px-4 py-2 text-center">
                           {emp.totalHalfDays}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(emp.totalLoanDeduct || 0)}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(emp.loanLeft || 0)}
                         </td>
                       </tr>
                     ))}

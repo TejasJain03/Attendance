@@ -14,18 +14,18 @@ const AttendancePage = () => {
     new Date().toISOString().split("T")[0]
   );
   const [showPopup, setShowPopup] = useState(false);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
       .get("/employees")
       .then((response) => {
         setEmployees(response.data.employees);
-        setLoading(false); // Set loading to false after data is fetched
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching employees:", error);
-        setLoading(false); // Set loading to false if there is an error
+        setLoading(false);
       });
   }, []);
 
@@ -52,6 +52,7 @@ const AttendancePage = () => {
       date: attendanceDate,
       ...attendanceDetails,
     };
+
     axios
       .put(`/employees/multiple-attendance/${attendanceDate}`, attendanceData)
       .then((response) => {
@@ -100,10 +101,9 @@ const AttendancePage = () => {
             </button>
           </div>
 
-          {/* Loading Spinner */}
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 border-solid border-indigo-600 rounded-full"></div>
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -147,72 +147,90 @@ const AttendancePage = () => {
         </div>
 
         {showPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md w-full">
-              <h3 className="text-2xl font-semibold text-gray-800 mb-6">
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
+              <h2 className="text-2xl font-bold mb-4 text-indigo-800">
                 Attendance Details
-              </h3>
+              </h2>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
+              <p className="text-gray-600 mb-6">
+                Update Attendance Information:
+              </p>
+
+              <div className="mb-6">
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-indigo-700 mb-2"
+                >
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={attendanceDetails.status}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                </select>
+              </div>
+
+              <div className="mb-6">
+                <label
+                  htmlFor="attendanceType"
+                  className="block text-sm font-medium text-indigo-700 mb-2"
+                >
+                  Attendance Type
+                </label>
+                <select
+                  id="attendanceType"
+                  name="attendanceType"
+                  value={attendanceDetails.attendanceType}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Full Day">Full Day</option>
+                  <option value="Half Day">Half Day</option>
+                </select>
+              </div>
+
+              {/* Extra Hours Dropdown */}
+              {attendanceDetails.attendanceType === "Full Day" && (
+                <div className="mb-6">
+                  <label
+                    htmlFor="extraHours"
+                    className="block text-sm font-medium text-indigo-700 mb-2"
+                  >
+                    Extra Hours (if any)
                   </label>
                   <select
-                    name="status"
-                    value={attendanceDetails.status}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  >
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Attendance Type
-                  </label>
-                  <select
-                    name="attendanceType"
-                    value={attendanceDetails.attendanceType}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  >
-                    <option value="Full Day">Full Day</option>
-                    <option value="Half Day">Half Day</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Extra Hours (Max 4)
-                  </label>
-                  <input
-                    type="number"
+                    id="extraHours"
+                    className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     name="extraWorkHours"
                     value={attendanceDetails.extraWorkHours}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                    min="0"
-                    max="4"
-                  />
+                  >
+                    <option value="0">0</option>
+                    <option value="0.5">0.5</option>
+                    <option value="1">1</option>
+                  </select>
                 </div>
+              )}
 
-                <div className="flex justify-end space-x-4">
-                  <button
-                    onClick={() => setShowPopup(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSubmitAttendance}
-                    className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Submit
-                  </button>
-                </div>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300 ease-in-out focus:outline-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitAttendance}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 ease-in-out focus:outline-none"
+                >
+                  Submit
+                </button>
               </div>
             </div>
           </div>

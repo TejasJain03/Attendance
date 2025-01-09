@@ -1,5 +1,8 @@
 // controllers/employeeController.js
 const Employee = require("../models/employee");
+const WeeklyPay = require('../models/weeklyPay'); // Make sure to import your WeeklyPay model
+const DailyAttendance = require('../models/dailyAttendence'); // Make sure to import your DailyAttendance model
+
 
 // Create a new employee
 exports.createEmployee = async (req, res) => {
@@ -149,8 +152,14 @@ exports.deleteEmployee = async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
+    // Delete associated records in WeeklyPay
+    await WeeklyPay.deleteMany({ employeeId });
+
+    // Delete associated records in DailyAttendance
+    await DailyAttendance.deleteMany({ employeeId });
+
     res.status(200).json({
-      message: "Employee deleted successfully",
+      message: "Employee and related data deleted successfully",
       data: deletedEmployee,
     });
   } catch (error) {
