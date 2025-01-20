@@ -16,6 +16,7 @@ const BasicCalendarExample = () => {
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false); // To manage delete popup visibility
   const [selectedDate, setSelectedDate] = useState(null);
   const [attendanceType, setAttendanceType] = useState("");
+  const [editDate, setEditDate] = useState(false);
   const [extraWorkHours, setExtraWorkHours] = useState(0); // Track extra hours input
   const navigate = useNavigate(); // For navigation
 
@@ -70,6 +71,10 @@ const BasicCalendarExample = () => {
     const dateObject = new Date(value);
     dateObject.setDate(dateObject.getDate() + 1);
     const formattedDate = dateObject.toISOString().split("T")[0];
+    const isDatePresent = attendanceData.some(
+      (item) => item.date === formattedDate
+    );
+    setEditDate(isDatePresent);
     setSelectedDate(new Date(formattedDate));
     setIsPopupOpen(true);
   };
@@ -271,88 +276,96 @@ const BasicCalendarExample = () => {
 
         {/* Popup */}
         {isPopupOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-            {/* Popup Content */}
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
-              <h2 className="text-2xl font-bold mb-4 text-indigo-800">
-                {selectedDate && selectedDate.toDateString()}
-              </h2>
-              <p className="text-gray-600 mb-6">Update Attendance Status:</p>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-indigo-800">{selectedDate && selectedDate.toDateString()}</h2>
+            <p className="text-gray-600 mb-6">Update Attendance Status:</p>
 
-              {/* Attendance Type Dropdown */}
+            {/* Attendance Type Dropdown */}
+            <div className="mb-6">
+              <label htmlFor="attendanceType" className="block text-sm font-medium text-indigo-700 mb-2">
+                Attendance Type
+              </label>
+              <select
+                id="attendanceType"
+                className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={attendanceType}
+                onChange={(e) => setAttendanceType(e.target.value)}
+                disabled={editDate}
+              >
+                <option value="select">Select</option>
+                <option value="Full Day">Full Day</option>
+                <option value="Half Day">Half Day</option>
+              </select>
+            </div>
+
+            {/* Extra Hours Field */}
+            {attendanceType === "Full Day" && (
               <div className="mb-6">
-                <label
-                  htmlFor="attendanceType"
-                  className="block text-sm font-medium text-indigo-700 mb-2"
-                >
-                  Attendance Type
+                <label htmlFor="extraHours" className="block text-sm font-medium text-indigo-700 mb-2">
+                  Extra Hours (if any)
                 </label>
                 <select
-                  id="attendanceType"
+                  id="extraHours"
                   className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={attendanceType}
-                  onChange={(e) => setAttendanceType(e.target.value)}
+                  value={extraWorkHours}
+                  onChange={(e) => setExtraWorkHours(e.target.value)}
+                  disabled={editDate}
                 >
-                  <option value="select">Select</option>
-                  <option value="Full Day">Full Day</option>
-                  <option value="Half Day">Half Day</option>
+                  <option value="0">0</option>
+                  <option value="0.5">0.5</option>
+                  <option value="1">1</option>
                 </select>
               </div>
+            )}
 
-              {/* Extra Hours Field */}
-              {attendanceType === "Full Day" && (
-                <div className="mb-6">
-                  <label
-                    htmlFor="extraHours"
-                    className="block text-sm font-medium text-indigo-700 mb-2"
-                  >
-                    Extra Hours (if any)
-                  </label>
-                  <select
-                    id="extraHours"
-                    className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={extraWorkHours}
-                    onChange={(e) => setExtraWorkHours(e.target.value)} // Update state on change
-                  >
-                    <option value="0">0</option>
-                    <option value="0.5">0.5</option>
-                    <option value="1">1</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={() =>
-                    handleAttendanceUpdate("Present", attendanceType)
-                  }
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out focus:outline-none"
-                >
-                  Present
-                </button>
-                <button
-                  onClick={() => handleAttendanceUpdate("Absent")}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
-                >
-                  Absent
-                </button>
-                <button
-                  onClick={() => handleAttendanceUpdate("Remove")}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300 ease-in-out focus:outline-none"
-                >
-                  Remove
-                </button>
-              </div>
-
-              {/* Close Button */}
+            <div className="flex flex-wrap justify-center gap-4 mb-4">
               <button
-                onClick={() => setIsPopupOpen(false)}
-                className="mt-4 bg-red-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
+                onClick={() => handleAttendanceUpdate("Present", attendanceType)}
+                className={`${
+                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
+                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                disabled={editDate}
               >
-                Close
+                Present
               </button>
+              <button
+                onClick={() => handleAttendanceUpdate("Absent")}
+                className={`${
+                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
+                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                disabled={editDate}
+              >
+                Absent
+              </button>
+              <button
+                onClick={() => handleAttendanceUpdate("Remove")}
+                className={`${
+                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-gray-500 hover:bg-gray-600"
+                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                disabled={editDate}
+              >
+                Remove
+              </button>
+              {editDate && (
+                <button
+                  onClick={() => setEditDate(false)}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-300 ease-in-out focus:outline-none flex-grow"
+                >
+                  Edit
+                </button>
+              )}
             </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsPopupOpen(false)}
+              className="w-full bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
+            >
+              Close
+            </button>
           </div>
+        </div>
         )}
       </div>
     </>
