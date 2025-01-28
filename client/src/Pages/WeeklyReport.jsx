@@ -25,6 +25,7 @@ const WeeklyReportPage = () => {
         const response = await axios.get(
           `/employees/weekly-report/${month}/${weekNumber}`
         );
+        console.log(response.data)
         setData(response.data);
         setError(null);
       } catch (err) {

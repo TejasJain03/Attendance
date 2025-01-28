@@ -17,7 +17,6 @@ const MonthlyReportPage = () => {
       .get(`/employees/monthly-report/${month}`)
       .then((response) => {
         const { reports } = response.data; // Assuming your API returns the data in 'reports' key
-        console.log(reports);
         setEmployees(reports || []);
         setLoading(false); // Hide loader after fetching data
       })
@@ -44,7 +43,7 @@ const MonthlyReportPage = () => {
         "Days Present": emp.totalDaysPresent,
         "Days Absent": emp.totalDaysAbsent,
         "Total Amount Paid": emp.totalAmountPaid + accountValue, // Add account value to total amount
-        Account: accountValue, // Add Account column with fixed value 5760
+        "Account": accountValue, // Add Account column with fixed value 5760
         "Final Amount": finalAmount,
         "Extra Work Days": emp.totalExtraWorkDays,
         "Half Days": emp.totalHalfDays,

@@ -27,4 +27,9 @@ router.get(
   catchAsync(weeklyPayController.getMonthlyPayReportForAllEmployees)
 );
 
+router.delete(
+  "/employees/:employeeId/weeklyPay/:month/:weekNumber",
+  catchAsync(weeklyPayController.deleteWeeklyPayReport)
+);
+
 module.exports = router;

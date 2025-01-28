@@ -9,6 +9,12 @@ router.get(
   catchAsync(attendanceController.getAttendanceForMonth)
 );
 
+
+router.get(
+  "/employees/attendance/:date/present",
+  catchAsync(attendanceController.getEmployeeAttendanceStatusOnDate)
+);
+
 // Route to get monthly attendance for an employee
 router.get(
   "/employees/:employeeId/attendance/:month/:weekNumber",
@@ -20,6 +26,8 @@ router.put(
   "/employees/:employeeId/attendance/:date",
   catchAsync(attendanceController.updateDailyAttendance)
 );
+
+
 
 router.put(
   "/employees/multiple-attendance/:date",

@@ -5,6 +5,7 @@ import Navbar from "../Components/Navbar";
 const AttendancePage = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [presentEmployees, setPresentEmployees] = useState([]);
   const [attendanceDetails, setAttendanceDetails] = useState({
     status: "Present",
     attendanceType: "Full Day",
@@ -27,7 +28,22 @@ const AttendancePage = () => {
         console.error("Error fetching employees:", error);
         setLoading(false);
       });
-  }, []);
+    axios
+      .get(`/employees/attendance/${attendanceDate}/present`)
+      .then((response) => {
+        console.log(
+          "Present employees on selected date:",
+          response.data.attendanceStatus
+        );
+        const presentEmployees = response.data.attendanceStatus
+          .filter((attendance) => attendance.status === "Present")
+          .map((attendance) => attendance.employeeId);
+        setPresentEmployees(presentEmployees);
+      })
+      .catch((error) => {
+        console.error("Error fetching present employees:", error);
+      });
+  }, [attendanceDate]);
 
   const handleEmployeeSelect = (employeeId) => {
     setSelectedEmployees((prev) =>
@@ -113,11 +129,13 @@ const AttendancePage = () => {
                   className={`p-4 rounded-lg shadow-md bg-white cursor-pointer border-2 transition-all duration-300 ${
                     selectedEmployees.includes(employee._id)
                       ? "border-indigo-500 bg-indigo-50"
+                      : presentEmployees.includes(employee._id)
+                      ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-indigo-300"
                   }`}
                   onClick={() => handleEmployeeSelect(employee._id)}
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 ">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
                         <span className="text-xl font-semibold text-indigo-600">
@@ -135,7 +153,9 @@ const AttendancePage = () => {
                       <input
                         type="checkbox"
                         checked={selectedEmployees.includes(employee._id)}
-                        onChange={() => {}}
+                        onChange={() => {
+                          handleEmployeeSelect(employee._id);
+                        }}
                         className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                       />
                     </div>

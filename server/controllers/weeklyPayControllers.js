@@ -91,7 +91,8 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
   const weeklyPays = await WeeklyPay.find({
     month,
     weekNumber,
-  }).populate("employeeId", "name"); // Populate employee details
+  }).populate("employeeId", "name"); // Populate employee details with name
+
   if (weeklyPays.length === 0) {
     return res.status(200).json({
       message:
@@ -101,24 +102,33 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
   }
 
   // Structure response
-  const response = weeklyPays.map((record) => ({
-    employeeId: record.employeeId?._id || record.employeeId,
-    employeeName: record.employeeId?.name, // Handle ObjectId or direct string
-    month: record.month, // Include the month
-    weekNumber: record.weekNumber, // Include the week number
-    daysPresent: record.daysPresent || 0, // Default to 0 if undefined
-    daysAbsent: record.daysAbsent || 0, // Default to 0 if undefined
-    fullDaysWithExtraWork: record.fullDaysWithExtraWork || [], // Default to empty array if undefined
-    fullDaysWithoutExtraWork: record.fullDaysWithoutExtraWork || 0, // Default to 0
-    halfDays: record.halfDays || 0, // Default to 0
-    startDate: record.startDate || "N/A", // Default to "N/A" if undefined
-    endDate: record.endDate || "N/A", // Default to "N/A" if undefined
-    totalAmount: record.totalAmount || 0, // Default to 0
-    cash: record.cash || 0, // Default to 0
-    amountDeducted: record.amountDeducted || 0, // Default to 0
-    amountPaid: record.amountPaid || 0, // Default to 0
-  }));
+  const response = weeklyPays.map((record) => {
+    // Calculate daysPresent by considering half days as 0.5
+    const daysPresent =
+      (record.fullDaysWithExtraWork?.length || 0) +
+      (record.fullDaysWithoutExtraWork || 0) +
+      (record.halfDays || 0) * 0.5;
 
+    return {
+      employeeId: record.employeeId?._id || record.employeeId, // Handle populated or non-populated employeeId
+      employeeName: record.employeeId?.name, // Handle ObjectId or direct string
+      month: record.month, // Include the month
+      weekNumber: record.weekNumber, // Include the week number
+      daysPresent: daysPresent || 0, // Default to 0 if undefined
+      daysAbsent: record.daysAbsent || 0, // Default to 0 if undefined
+      fullDaysWithExtraWork: record.fullDaysWithExtraWork || [], // Default to empty array if undefined
+      fullDaysWithoutExtraWork: record.fullDaysWithoutExtraWork || 0, // Default to 0
+      halfDays: record.halfDays || 0, // Default to 0
+      startDate: record.startDate || "N/A", // Default to "N/A" if undefined
+      endDate: record.endDate || "N/A", // Default to "N/A" if undefined
+      totalAmount: record.totalAmount || 0, // Default to 0
+      cash: record.cash || 0, // Default to 0
+      amountDeducted: record.amountDeducted || 0, // Default to 0
+      amountPaid: record.amountPaid || 0, // Default to 0
+    };
+  });
+
+  // Send the response
   res.status(200).json({
     month,
     weekNumber,
@@ -169,7 +179,6 @@ exports.getWeeklyPayForEmployee = async (req, res) => {
     records: response,
   });
 };
-
 exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
   const { month } = req.params;
 
@@ -208,7 +217,6 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
 
     // Loop through weekly pay data to accumulate totals
     for (const record of weeklyPays) {
-      totalDaysPresent += record.daysPresent;
       totalDaysAbsent += record.daysAbsent;
       totalAmountPaid += record.amountPaid;
       totalExtraWorkDays += record.fullDaysWithExtraWork.length;
@@ -216,6 +224,9 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
       totalHalfDays += record.halfDays;
       totalAmountDeducted += record.amountDeducted || 0; // Accumulate deductions
     }
+
+    // Adjust total days present by considering half days as 0.5
+    totalDaysPresent = totalExtraWorkDays + totalFullDaysWithoutExtraWork + totalHalfDays * 0.5;
 
     // Calculate total loan amount and loan left
     const totalLoan = employee.loan.reduce((sum, loan) => sum + loan.amount, 0); // Sum all loan amounts
@@ -228,12 +239,12 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
       phoneNumber: employee.phoneNumber, // Adding phone number to the report
       role: employee.role, // Adding role to the report
       month,
-      totalDaysPresent,
+      totalDaysPresent, // Adjusted total days present
       totalDaysAbsent,
       totalAmountPaid,
       totalExtraWorkDays,
       totalFullDaysWithoutExtraWork,
-      totalHalfDays,
+      totalHalfDays, // Record half days as 1 in the report
       totalAmountDeducted, // Include amount deducted in the report
       totalLoan, // Include total loan in the report
       loanLeft, // Include loan left in the report
@@ -248,4 +259,25 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
       .status(404)
       .json({ message: "No reports found for the given month." });
   }
+};
+
+exports.deleteWeeklyPayReport = async (req, res) => {
+  const { weekNumber, employeeId, month } = req.params;
+
+  const deletedRecord = await WeeklyPay.findOneAndDelete({
+    employeeId,
+    month,
+    weekNumber,
+  });
+
+  if (!deletedRecord) {
+    return res.status(404).json({
+      message: "Weekly pay record not found.",
+    });
+  }
+
+  res.status(200).json({
+    message: "Weekly pay record deleted successfully.",
+    data: deletedRecord,
+  });
 };

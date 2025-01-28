@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import Navbar from "../Components/Navbar";
-import { useNavigationType, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useEffect } from "react";
 import axios from "../axios";
 import { useNavigate } from "react-router-dom";
 
@@ -14,9 +15,36 @@ const UpdateAttendance = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [dates, setDates] = useState([]);
+  const [markedDates, setMarkedDates] = useState([]);
   const [status, setStatus] = useState("Present");
   const [attendanceType, setAttendanceType] = useState("Full Day");
   const [extraWorkHours, setExtraWorkHours] = useState("0");
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      setLoading(true);
+      const formattedDate = `${year}-${String(month).padStart(2, "0")}`;
+      try {
+        const response = await axios.get(
+          `/employees/${employeeId}/attendance/${formattedDate}`
+        );
+        const attendanceData = response.data.data;
+        const mappedDates = attendanceData.map((item) =>
+          Number(item.date.split("-")[2])
+        );
+        setMarkedDates(mappedDates);
+        console.log(mappedDates);
+      } catch (error) {
+        toast.error("Failed to fetch attendance data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (employeeId && month && year) {
+      fetchAttendance();
+    }
+  }, [employeeId, month, year]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,6 +83,7 @@ const UpdateAttendance = () => {
 
   const generateDates = () => {
     const daysInMonth = new Date(year, month, 0).getDate();
+
     return Array.from({ length: daysInMonth }, (_, i) => {
       const day = i + 1;
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
@@ -160,8 +189,9 @@ const UpdateAttendance = () => {
                             <input
                               type="checkbox"
                               checked={dates.includes(date)}
+                              disabled={markedDates.includes(Number(date.split("-")[2]))}
                               onChange={() => handleDateChange(date)}
-                              className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                              className="form-checkbox h-4 w-4 text-indigo-600"
                             />
                             <span className="text-sm text-gray-700">
                               {new Date(date).getDate()}

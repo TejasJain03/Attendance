@@ -164,9 +164,7 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
       );
 
       // Count attendance types
-      const daysPresent = weekRecords.filter(
-        (record) => record.status === "Present"
-      ).length;
+
       const daysAbsent = weekRecords.filter(
         (record) => record.status === "Absent"
       ).length;
@@ -194,6 +192,8 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
       const halfDays = weekRecords.filter(
         (record) => record.attendanceType === "Half Day"
       ).length;
+
+      daysPresent = fullDaysWithoutExtraWork + fullDaysWithExtraWork.length + halfDays * 0.5;
 
       return {
         employeeId: employee._id,
@@ -405,4 +405,36 @@ exports.updateMultipleDatesAttendance = async (req, res) => {
     message: "Attendance updated successfully.",
     data: updatedAttendances,
   });
+};
+
+exports.getEmployeeAttendanceStatusOnDate = async (req, res) => {
+  const { date } = req.params;
+
+  try {
+    // Fetch all employees
+    const employees = await Employee.find();
+
+    // Fetch attendance records for the specified date
+    const attendanceRecords = await DailyAttendance.find({ date });
+
+    // Map employee attendance status
+    const attendanceStatus = employees.map((employee) => {
+      const attendance = attendanceRecords.find(
+        (record) => record.employeeId.toString() === employee._id.toString()
+      );
+      return {
+        employeeId: employee._id,
+        name: employee.name,
+        status: attendance ? attendance.status : "Absent",
+      };
+    });
+
+    res.status(200).json({
+      date,
+      attendanceStatus,
+    });
+  } catch (error) {
+    console.error("Error fetching employee attendance status:", error);
+    res.status(500).json({ message: "Error fetching employee attendance status" });
+  }
 };

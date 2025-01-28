@@ -1,3 +1,4 @@
+import { toast } from "react-toastify"; // Import toast
 import { useEffect, useState } from "react";
 import axios from "../axios";
 import * as XLSX from "xlsx";
@@ -96,11 +97,41 @@ const WeeklyReportPage = () => {
     XLSX.writeFile(workbook, `Weekly_Report_${month}_Week${weekNumber}.xlsx`);
   };
 
+  // const [editingEmployee, setEditingEmployee] = useState(null);
+  // const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // const handleEdit = (employee) => {
+  //   setEditingEmployee({ ...employee });
+  //   setIsEditModalOpen(true);
+  // };
+
+  const handleDelete = (employeeId, weekNumber, month) => {
+    axios
+      .delete(`/employees/${employeeId}/weeklyPay/${month}/${weekNumber}`)
+      .then((response) => {
+        console.log("Employee deleted successfully:", response.data);
+        toast.success("Record deleted successfully");
+        fetchWeeklyReport();
+      })
+      .catch((error) => {
+        console.error("Error deleting employee:", error);
+        toast.error("Error deleting record");
+      });
+  };
+
+  // const handleSaveEdit = () => {
+  //   // Implement save logic here
+  //   console.log("Saving edited employee:", editingEmployee);
+  //   // After successful update, refetch the data
+  //   fetchWeeklyReport();
+  //   setIsEditModalOpen(false);
+  // };
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="max-w-8xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-indigo-600 px-6 py-4">
             <h2 className="text-2xl font-bold text-white text-center">
@@ -187,6 +218,9 @@ const WeeklyReportPage = () => {
                       <th className="border border-gray-300 px-4 py-2">
                         Amount Paid
                       </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -239,6 +273,22 @@ const WeeklyReportPage = () => {
                               maximumFractionDigits: 2,
                             }).format(emp.amountPaid)}
                           </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center">
+                            {/* <button
+                              onClick={() => handleEdit(emp)}
+                              className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600 transition duration-300"
+                            >
+                              Edit
+                            </button> */}
+                            <button
+                              onClick={() =>
+                                handleDelete(emp.employeeId, weekNumber, month)
+                              }
+                              className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition duration-300"
+                            >
+                              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAJRJREFUSEvtlcENgCAMRfs301GcRJ1MRnGTag8kSoBaAh6UHhvyX/uBFtQ40FifVAAzD0S0JQpZASy5IrMARVx0dyKaALgU5AZgZq5hGc62vM67gBrVhxrROyi16mpN1CKf/BbAtx12FcsXWdQB6jPtFv3AIssAtHw02WCyySzhAIxPp6mIzwZIcrOpO9nSQuxsc8ABQHeaGbkbfj0AAAAASUVORK5CYII=" />{" "}
+                            </button>
+                          </td>
                         </tr>
                       ))
                     ) : (
@@ -255,6 +305,56 @@ const WeeklyReportPage = () => {
                 </table>
               </div>
             )}
+            {/* {isEditModalOpen && editingEmployee && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Edit Employee</h2>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    handleSaveEdit()
+                  }}
+                >
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.employeeName}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, employeeName: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Cash</label>
+                    <input
+                      type="number"
+                      value={editingEmployee.cash}
+                      onChange={(e) =>
+                        setEditingEmployee({ ...editingEmployee, cash: Number.parseFloat(e.target.value) })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(false)}
+                      className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2 hover:bg-gray-400 transition duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )} */}
 
             {/* Download Button */}
             {!loading && (
