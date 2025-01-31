@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 
 const BasicCalendarExample = () => {
   const [date, setDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   const { employeeId } = useParams();
   const [attendanceData, setAttendanceData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -39,6 +40,7 @@ const BasicCalendarExample = () => {
   useEffect(() => {
     const fetchAttendanceData = async () => {
       try {
+        setLoading(true);
         const formattedDate = `${date.getFullYear()}-${String(
           date.getMonth() + 1
         ).padStart(2, "0")}`;
@@ -49,6 +51,9 @@ const BasicCalendarExample = () => {
         setAttendanceData(response.data.data);
       } catch (error) {
         console.error("Error fetching attendance data:", error);
+        toast.error("Failed to fetch attendance data. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchAttendanceData();
@@ -256,116 +261,137 @@ const BasicCalendarExample = () => {
                 )}
               </div>
             </div>
-
-            {/* Calendar */}
             <div className="flex flex-col items-center bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
               <h2 className="text-2xl font-bold text-indigo-800 mb-4">
                 Attendance Calendar
               </h2>
-              <Calendar
-                onChange={(newDate) => setDate(newDate)}
-                value={date}
-                tileContent={getTileContent}
-                onClickDay={handleDayClick}
-                className="w-full border-none shadow-none"
-                showNavigation={false}
-              />
+              {loading ? (
+                <div className="flex justify-center items-center py-10">
+                  <div className="border-t-4 border-blue-500 border-solid w-16 h-16 rounded-full animate-spin"></div>{" "}
+                  {/* Spinner */}
+                </div>
+              ) : (
+                <Calendar
+                  onChange={(newDate) => setDate(newDate)}
+                  value={date}
+                  tileContent={getTileContent}
+                  onClickDay={handleDayClick}
+                  className="w-full border-none shadow-none"
+                  showNavigation={false}
+                />
+              )}
             </div>
           </div>
         </div>
 
         {/* Popup */}
         {isPopupOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-indigo-800">{selectedDate && selectedDate.toDateString()}</h2>
-            <p className="text-gray-600 mb-6">Update Attendance Status:</p>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-96 text-center">
+              <h2 className="text-2xl font-bold mb-4 text-indigo-800">
+                {selectedDate && selectedDate.toDateString()}
+              </h2>
+              <p className="text-gray-600 mb-6">Update Attendance Status:</p>
 
-            {/* Attendance Type Dropdown */}
-            <div className="mb-6">
-              <label htmlFor="attendanceType" className="block text-sm font-medium text-indigo-700 mb-2">
-                Attendance Type
-              </label>
-              <select
-                id="attendanceType"
-                className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={attendanceType}
-                onChange={(e) => setAttendanceType(e.target.value)}
-                disabled={editDate}
-              >
-                <option value="select">Select</option>
-                <option value="Full Day">Full Day</option>
-                <option value="Half Day">Half Day</option>
-              </select>
-            </div>
-
-            {/* Extra Hours Field */}
-            {attendanceType === "Full Day" && (
+              {/* Attendance Type Dropdown */}
               <div className="mb-6">
-                <label htmlFor="extraHours" className="block text-sm font-medium text-indigo-700 mb-2">
-                  Extra Hours (if any)
+                <label
+                  htmlFor="attendanceType"
+                  className="block text-sm font-medium text-indigo-700 mb-2"
+                >
+                  Attendance Type
                 </label>
                 <select
-                  id="extraHours"
+                  id="attendanceType"
                   className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={extraWorkHours}
-                  onChange={(e) => setExtraWorkHours(e.target.value)}
+                  value={attendanceType}
+                  onChange={(e) => setAttendanceType(e.target.value)}
                   disabled={editDate}
                 >
-                  <option value="0">0</option>
-                  <option value="0.5">0.5</option>
-                  <option value="1">1</option>
+                  <option value="select">Select</option>
+                  <option value="Full Day">Full Day</option>
+                  <option value="Half Day">Half Day</option>
                 </select>
               </div>
-            )}
 
-            <div className="flex flex-wrap justify-center gap-4 mb-4">
-              <button
-                onClick={() => handleAttendanceUpdate("Present", attendanceType)}
-                className={`${
-                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
-                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                disabled={editDate}
-              >
-                Present
-              </button>
-              <button
-                onClick={() => handleAttendanceUpdate("Absent")}
-                className={`${
-                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
-                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                disabled={editDate}
-              >
-                Absent
-              </button>
-              <button
-                onClick={() => handleAttendanceUpdate("Remove")}
-                className={`${
-                  editDate ? "bg-gray-400 cursor-not-allowed" : "bg-gray-500 hover:bg-gray-600"
-                } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                disabled={editDate}
-              >
-                Remove
-              </button>
-              {editDate && (
-                <button
-                  onClick={() => setEditDate(false)}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-300 ease-in-out focus:outline-none flex-grow"
-                >
-                  Edit
-                </button>
+              {/* Extra Hours Field */}
+              {attendanceType === "Full Day" && (
+                <div className="mb-6">
+                  <label
+                    htmlFor="extraHours"
+                    className="block text-sm font-medium text-indigo-700 mb-2"
+                  >
+                    Extra Hours (if any)
+                  </label>
+                  <select
+                    id="extraHours"
+                    className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    value={extraWorkHours}
+                    onChange={(e) => setExtraWorkHours(e.target.value)}
+                    disabled={editDate}
+                  >
+                    <option value="0">0</option>
+                    <option value="0.5">0.5</option>
+                    <option value="1">1</option>
+                  </select>
+                </div>
               )}
-            </div>
 
-            {/* Close Button */}
-            <button
-              onClick={() => setIsPopupOpen(false)}
-              className="w-full bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
-            >
-              Close
-            </button>
+              <div className="flex flex-wrap justify-center gap-4 mb-4">
+                <button
+                  onClick={() =>
+                    handleAttendanceUpdate("Present", attendanceType)
+                  }
+                  className={`${
+                    editDate
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600"
+                  } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                  disabled={editDate}
+                >
+                  Present
+                </button>
+                <button
+                  onClick={() => handleAttendanceUpdate("Absent")}
+                  className={`${
+                    editDate
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-red-500 hover:bg-red-600"
+                  } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                  disabled={editDate}
+                >
+                  Absent
+                </button>
+                <button
+                  onClick={() => handleAttendanceUpdate("Remove")}
+                  className={`${
+                    editDate
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gray-500 hover:bg-gray-600"
+                  } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
+                  disabled={editDate}
+                >
+                  Remove
+                </button>
+                {editDate && (
+                  <button
+                    onClick={() => setEditDate(false)}
+                    className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-300 ease-in-out focus:outline-none flex-grow"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                className="w-full bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </div>
         )}
       </div>
     </>

@@ -189,10 +189,17 @@ const UpdateAttendance = () => {
                             <input
                               type="checkbox"
                               checked={dates.includes(date)}
-                              disabled={markedDates.includes(Number(date.split("-")[2]))}
+                              disabled={markedDates.includes(
+                                Number(date.split("-")[2])
+                              )}
                               onChange={() => handleDateChange(date)}
-                              className="form-checkbox h-4 w-4 text-indigo-600"
+                              className={`form-checkbox h-4 w-4 ${
+                                markedDates.includes(Number(date.split("-")[2]))
+                                  ? "text-gray-400 cursor-not-allowed opacity-50"
+                                  : "text-indigo-600"
+                              }`}
                             />
+
                             <span className="text-sm text-gray-700">
                               {new Date(date).getDate()}
                             </span>

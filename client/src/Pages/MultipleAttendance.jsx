@@ -18,23 +18,20 @@ const AttendancePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true); // Show loading when date changes
+
     axios
       .get("/employees")
       .then((response) => {
         setEmployees(response.data.employees);
-        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching employees:", error);
-        setLoading(false);
       });
+
     axios
       .get(`/employees/attendance/${attendanceDate}/present`)
       .then((response) => {
-        console.log(
-          "Present employees on selected date:",
-          response.data.attendanceStatus
-        );
         const presentEmployees = response.data.attendanceStatus
           .filter((attendance) => attendance.status === "Present")
           .map((attendance) => attendance.employeeId);
@@ -42,6 +39,9 @@ const AttendancePage = () => {
       })
       .catch((error) => {
         console.error("Error fetching present employees:", error);
+      })
+      .finally(() => {
+        setLoading(false); // Hide loading after data is fetched
       });
   }, [attendanceDate]);
 
@@ -96,8 +96,8 @@ const AttendancePage = () => {
         </h2>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <div className="w-full sm:w-auto mb-4 sm:mb-0">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Date
               </label>
@@ -105,12 +105,12 @@ const AttendancePage = () => {
                 type="date"
                 value={attendanceDate}
                 onChange={handleDateChange}
-                className="w-48 border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                className="w-full sm:w-48 border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               />
             </div>
             <button
               onClick={() => setShowPopup(true)}
-              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
+              className="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:outline-none transition transform hover:scale-105"
               disabled={selectedEmployees.length === 0}
             >
               Submit Attendance
