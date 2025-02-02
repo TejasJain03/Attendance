@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
 
 # Build and configuration files
 tailwind.config.js
