@@ -5,7 +5,7 @@ import Navbar from "../Components/Navbar";
 const AttendancePage = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
-  const [presentEmployees, setPresentEmployees] = useState([]);
+  const [markedEmployees, setMarkedEmployees] = useState([]);
   const [attendanceDetails, setAttendanceDetails] = useState({
     status: "Present",
     attendanceType: "Full Day",
@@ -32,10 +32,14 @@ const AttendancePage = () => {
     axios
       .get(`/employees/attendance/${attendanceDate}/present`)
       .then((response) => {
-        const presentEmployees = response.data.attendanceStatus
-          .filter((attendance) => attendance.status === "Present")
+        console.log(response.data);
+        const markedEmployees = response.data.attendanceStatus
+          .filter(
+            (attendance) =>
+              attendance.status === "Present" || attendance.status === "Absent"
+          )
           .map((attendance) => attendance.employeeId);
-        setPresentEmployees(presentEmployees);
+        setMarkedEmployees(markedEmployees);
       })
       .catch((error) => {
         console.error("Error fetching present employees:", error);
@@ -126,11 +130,11 @@ const AttendancePage = () => {
               {employees.map((employee) => (
                 <div
                   key={employee._id}
-                  className={`p-4 rounded-lg shadow-md bg-white cursor-pointer border-2 transition-all duration-300 ${
+                  className={`p-4 rounded-lg shadow-md bg-white  border-2 transition-all duration-300  ${
                     selectedEmployees.includes(employee._id)
-                      ? "border-indigo-500 bg-indigo-50"
-                      : presentEmployees.includes(employee._id)
-                      ? "border-green-500 bg-green-50"
+                      ? "border-indigo-500 bg-indigo-50 cursor-pointer"
+                      : markedEmployees.includes(employee._id)
+                      ? "border-green-500 bg-green-50 cursor-not-allowed"
                       : "border-gray-200 hover:border-indigo-300"
                   }`}
                   onClick={() => handleEmployeeSelect(employee._id)}
@@ -156,7 +160,11 @@ const AttendancePage = () => {
                         onChange={() => {
                           handleEmployeeSelect(employee._id);
                         }}
-                        className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        className={`w-5 h-5 ${
+                          markedEmployees.includes(employee._id)
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer"
+                        } text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded`}
                       />
                     </div>
                   </div>

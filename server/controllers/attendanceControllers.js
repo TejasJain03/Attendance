@@ -425,7 +425,7 @@ exports.getEmployeeAttendanceStatusOnDate = async (req, res) => {
       return {
         employeeId: employee._id,
         name: employee.name,
-        status: attendance ? attendance.status : "Absent",
+        status: attendance ? attendance.status : null,
       };
     });
 
