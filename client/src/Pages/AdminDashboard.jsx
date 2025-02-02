@@ -3,8 +3,7 @@ import Navbar from "../Components/Navbar";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  console.log("REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
-  console.log("REACT_APP_ENV:", process.env.REACT_APP_ENV);
+
   const dashboardItems = [
     {
       title: "Employee Management",
