@@ -6,8 +6,8 @@ import { toast } from "react-toastify";
 import Navbar from "../Components/Navbar";
 
 const PaymentPage = () => {
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [remainingAmount, setRemainingAmount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState();
+  const [remainingAmount, setRemainingAmount] = useState();
   const { month, weekNumber, employeeId } = useParams();
   const [loanDetails, setLoanDetails] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -35,26 +35,29 @@ const PaymentPage = () => {
               )
               .catch((error) => {
                 console.error("Error in weekly pay check API:", error);
+                toast.error("Error in weekly pay check API.");
                 return null; // Return null or a fallback value
               }),
             axios
               .get(`/employees/${employeeId}/get-weeklyPay/${month}`)
               .catch((error) => {
                 console.error("Error in monthly pay API:", error);
+                toast.error("Error in monthly pay API.");
                 return null; // Return null or a fallback value
               }),
             axios.get(`/employees/${employeeId}`).catch((error) => {
               console.error("Error in employee details API:", error);
+              toast.error("Error in employee details API.");
               return null; // Return null or a fallback value
             }),
           ]
         );
 
         if (payCheckResponse.data.paid) {
-          console.log(payCheckResponse.data.paid)
+          console.log(payCheckResponse.data.paid);
           toast.info("Payment has already been processed for this week.");
-          setRemainingAmount(-1);
-          setTotalAmount(-1);
+          setRemainingAmount();
+          setTotalAmount();
           return;
         }
         const result = calculateSalary(
@@ -65,6 +68,7 @@ const PaymentPage = () => {
         setLoanDetails(loanResponse.data.employee.loan || []);
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast.error("Error fetching data.");
       } finally {
         setLoading(false);
       }
@@ -90,6 +94,7 @@ const PaymentPage = () => {
           ...prevLoans,
           { loanId: currentLoanId, deductedAmount: deductionAmount },
         ]);
+        toast.success("Loan deduction updated successfully!");
         closePopup();
       } else {
         toast.error("Deduction amount exceeds the loan amount!");
@@ -108,10 +113,6 @@ const PaymentPage = () => {
     setIsPopupOpen(false);
     setCurrentLoanIndex(null);
     setCurrentLoanId(null);
-    // Show toast and navigate to the weekly report page after the toast closes
-    toast.success("Loan deduction updated successfully!", {
-      onClose: () => navigate("/admin/weekly-report"),
-    });
   };
 
   const handlePay = async () => {
@@ -226,7 +227,7 @@ const PaymentPage = () => {
                       Total Amount
                     </dt>
                     <dd className="mt-1 text-3xl font-semibold text-indigo-600">
-                      ₹{totalAmount.toFixed(2)}
+                      ₹{totalAmount != null ? totalAmount.toFixed(2) : " - "}
                     </dd>
                   </div>
                   <div className="sm:col-span-1">
@@ -234,7 +235,10 @@ const PaymentPage = () => {
                       Remaining Amount (After Loan Deduction)
                     </dt>
                     <dd className="mt-1 text-3xl font-semibold text-green-600">
-                      ₹{remainingAmount.toFixed(2)}
+                      ₹
+                      {remainingAmount != null
+                        ? remainingAmount.toFixed(2)
+                        : " - "}
                     </dd>
                   </div>
                 </dl>
