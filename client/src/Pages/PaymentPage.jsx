@@ -75,7 +75,7 @@ const PaymentPage = () => {
     };
 
     fetchData();
-  }, [employeeId, month, state]);
+  }, [employeeId, month, state, weekNumber]);
 
   const handleDeductionChange = (e) => {
     const sanitizedValue = e.target.value.replace(/^0+(?!$)/, "");
@@ -227,7 +227,9 @@ const PaymentPage = () => {
                       Total Amount
                     </dt>
                     <dd className="mt-1 text-3xl font-semibold text-indigo-600">
-                      ₹{totalAmount != null ? totalAmount.toFixed(2) : " - "}
+                      {totalAmount != null
+                        ? `₹ ${totalAmount.toFixed(2)}`
+                        : " - "}
                     </dd>
                   </div>
                   <div className="sm:col-span-1">
@@ -235,10 +237,9 @@ const PaymentPage = () => {
                       Remaining Amount (After Loan Deduction)
                     </dt>
                     <dd className="mt-1 text-3xl font-semibold text-green-600">
-                      ₹
                       {remainingAmount != null
-                        ? remainingAmount.toFixed(2)
-                        : " - "}
+                        ? `₹ ${remainingAmount.toFixed(2)}`
+                        : " -  "}
                     </dd>
                   </div>
                 </dl>
