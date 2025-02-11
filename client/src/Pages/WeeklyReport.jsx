@@ -49,6 +49,7 @@ const WeeklyReportPage = () => {
 
   const handlePay = (employeeId, employeeSummary) => {
     const { weekStartDate, weekEndDate, week } = data;
+    console.log(employeeSummary)
     navigate(`/admin/${employeeId}/${month}/${weekNumber}`, {
       state: {
         employeeSummary,

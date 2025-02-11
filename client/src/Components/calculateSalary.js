@@ -10,69 +10,86 @@ export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
     employeeSummaryWeek?.fullDaysWithoutExtraWork || 0;
   const halfDays = employeeSummaryWeek?.halfDays || 0;
 
+  const cashPayment = employeeSummaryWeek?.employee?.paymentDivision?.cash || 0;
+  const accountPayment =
+    employeeSummaryWeek?.employee?.paymentDivision?.account || 0;
+
+  let isFirstDay = totalDaysPresent === 21.5;
+
   // Iterate through the full days with extra work
   fullDaysWithExtraWork.forEach((day) => {
-    totalDaysPresent += 1; // Increase the total days present by 1 for each full day with extra work
     let dailySalary = 0;
 
-    // If the total days present exceed 22, calculate salary for exceeding days
-    if (totalDaysPresent > 22) {
-      if (exceedingDaysCount < totalDaysPresent - 22) {
-        exceedingDaysCount += 1; // Increment exceeding days count
-
-        // Calculate salary for exceeding days (You can modify this as per your requirement)
-        dailySalary =
-          employeeSummaryWeek?.employee?.paymentDivision?.account +
-          employeeSummaryWeek?.employee?.paymentDivision?.cash;
-      }
+    if (isFirstDay) {
+      // Special case handling for the first day if totalDaysPresent was 21.5
+      dailySalary = 0.5 * cashPayment + 0.5 * (cashPayment + accountPayment);
+      isFirstDay = false; // Reset after first calculation
     } else {
-      // Regular salary calculation for full days with extra work
-      if (day.extraWorkHours == 0.5) {
-        dailySalary =
-          employeeSummaryWeek?.employee?.paymentDivision?.cash +
-          (employeeSummaryWeek?.employee?.paymentDivision?.account +
-            employeeSummaryWeek?.employee?.paymentDivision?.cash) /
-            2;
-      } else if (day.extraWorkHours == 1) {
-        dailySalary =
-          employeeSummaryWeek?.employee?.paymentDivision?.account +
-          employeeSummaryWeek?.employee?.paymentDivision?.cash;
+      totalDaysPresent += 1;
+
+      if (totalDaysPresent > 22) {
+        if (exceedingDaysCount < totalDaysPresent - 22) {
+          exceedingDaysCount += 1;
+          dailySalary = cashPayment + accountPayment;
+        }
+      } else {
+        if (day.extraWorkHours == 0.5) {
+          dailySalary = cashPayment + (cashPayment + accountPayment) / 2;
+        } else if (day.extraWorkHours == 1) {
+          dailySalary = cashPayment + accountPayment;
+        }
       }
     }
 
-    totalSalary += dailySalary; // Add the calculated daily salary to the total
+    totalSalary += dailySalary;
   });
 
   // For full days without extra work
   for (let i = 0; i < fullDaysWithoutExtraWork; i++) {
-    totalDaysPresent += 1;
     let dailySalary = 0;
 
-    // If the total days present exceed 22, calculate salary for exceeding days
-    if (totalDaysPresent > 22) {
-      if (exceedingDaysCount < totalDaysPresent - 22) {
-        exceedingDaysCount += 1; // Increment exceeding days count
-
-        // Calculate salary for exceeding days (You can modify this as per your requirement)
-        dailySalary =
-          employeeSummaryWeek?.employee?.paymentDivision?.account +
-          employeeSummaryWeek?.employee?.paymentDivision?.cash;
-      }
+    if (isFirstDay) {
+      // Special case handling for the first day if totalDaysPresent was 21.5
+      dailySalary = 0.5 * cashPayment + 0.5 * (cashPayment + accountPayment);
+      isFirstDay = false; // Reset after first calculation
     } else {
-      // Regular salary calculation for full days without extra work
-      dailySalary = employeeSummaryWeek?.employee?.paymentDivision?.cash || 0;
+      totalDaysPresent += 1;
+
+      if (totalDaysPresent > 22) {
+        if (exceedingDaysCount < totalDaysPresent - 22) {
+          exceedingDaysCount += 1;
+          dailySalary = cashPayment + accountPayment;
+        }
+      } else {
+        dailySalary = cashPayment;
+      }
     }
 
-    totalSalary += dailySalary; // Add daily salary for each full day without extra work
+    totalSalary += dailySalary;
   }
 
   // For half days
   for (let i = 0; i < halfDays; i++) {
-    totalDaysPresent += 1;
-    let dailySalary =
-      (employeeSummaryWeek?.employee?.paymentDivision?.cash || 0) / 2;
-    totalSalary += dailySalary; // Add half of the daily salary for each half day
+    totalDaysPresent += 0.5;
+    let dailySalary = cashPayment / 2;
+
+    totalSalary += dailySalary;
   }
 
-  return totalSalary; // Return the calculated total salary
+  return totalSalary;
 }
+
+// calculateSalary(
+//   {
+//     fullDaysWithExtraWork: [],
+//     fullDaysWithoutExtraWork: 5,
+//     halfDays: 0,
+//     employee: {
+//       paymentDivision: {
+//         account: 364, // Example values
+//         cash: 736,
+//       },
+//     },
+//   },
+//   21.5
+// );
