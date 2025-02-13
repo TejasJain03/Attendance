@@ -1,9 +1,10 @@
 export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
   let totalSalary = 0;
-  let totalDaysPresent = totalDaysPresentTillNow; // This is the total number of days present till now.
-  let exceedingDaysCount = 0; // To track how many days exceed the 22-day threshold.
+  let totalDaysPresent = totalDaysPresentTillNow; // Total number of days present till now.
+  let exceedingDaysCount = 0; // Tracks days exceeding the 22-day threshold.
 
-  // Full days with extra work hours
+  // let salaryHistory = []; // Stores daily salary logs
+
   const fullDaysWithExtraWork =
     employeeSummaryWeek?.fullDaysWithExtraWork || [];
   const fullDaysWithoutExtraWork =
@@ -14,16 +15,25 @@ export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
   const accountPayment =
     employeeSummaryWeek?.employee?.paymentDivision?.account || 0;
 
-  let isFirstDay = totalDaysPresent === 21.5;
+  // let i = 0
+  // // Function to log daily salary with date
+  // const logSalary = (dailySalary) => {
+  //   i = i + 1
+  //   salaryHistory.push({
+  //     date: new Date().toLocaleDateString() + i,
+  //     time: new Date().toLocaleTimeString(),
+  //     salaryEarned: dailySalary,
+  //     totalSalaryAccumulated: totalSalary,
+  //   });
+  // };
 
-  // Iterate through the full days with extra work
+  // Full days with extra work hours
   fullDaysWithExtraWork.forEach((day) => {
     let dailySalary = 0;
 
-    if (isFirstDay) {
-      // Special case handling for the first day if totalDaysPresent was 21.5
+    if (totalDaysPresent === 21.5) {
       dailySalary = 0.5 * cashPayment + 0.5 * (cashPayment + accountPayment);
-      isFirstDay = false; // Reset after first calculation
+      totalDaysPresent += 1;
     } else {
       totalDaysPresent += 1;
 
@@ -42,16 +52,16 @@ export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
     }
 
     totalSalary += dailySalary;
+    // logSalary(dailySalary);
   });
 
-  // For full days without extra work
+  // Full days without extra work
   for (let i = 0; i < fullDaysWithoutExtraWork; i++) {
     let dailySalary = 0;
 
-    if (isFirstDay) {
-      // Special case handling for the first day if totalDaysPresent was 21.5
+    if (totalDaysPresent === 21.5) {
       dailySalary = 0.5 * cashPayment + 0.5 * (cashPayment + accountPayment);
-      isFirstDay = false; // Reset after first calculation
+      totalDaysPresent += 1;
     } else {
       totalDaysPresent += 1;
 
@@ -66,20 +76,30 @@ export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
     }
 
     totalSalary += dailySalary;
+    // logSalary(dailySalary);
   }
 
-  // For half days
+  // Half days calculation
   for (let i = 0; i < halfDays; i++) {
-    totalDaysPresent += 0.5;
-    let dailySalary = cashPayment / 2;
+    let dailySalary = 0;
+
+    if (totalDaysPresent === 21.5) {
+      dailySalary = 0.5 * cashPayment + 0.5 * (cashPayment + accountPayment);
+      totalDaysPresent += 1;
+    } else {
+      totalDaysPresent += 0.5;
+      dailySalary = cashPayment / 2;
+    }
 
     totalSalary += dailySalary;
+    // logSalary(dailySalary);
   }
 
   return totalSalary;
 }
 
-// calculateSalary(
+// Example usage:
+// const result = calculateSalary(
 //   {
 //     fullDaysWithExtraWork: [],
 //     fullDaysWithoutExtraWork: 5,
@@ -87,9 +107,11 @@ export function calculateSalary(employeeSummaryWeek, totalDaysPresentTillNow) {
 //     employee: {
 //       paymentDivision: {
 //         account: 364, // Example values
-//         cash: 736,
+//         cash: 636,
 //       },
 //     },
 //   },
-//   21.5
+//   20.5
 // );
+
+// console.log(result)

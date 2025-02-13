@@ -28,8 +28,8 @@ router.get(
 );
 
 router.delete(
-  "/employees/:employeeId/weeklyPay/:month/:weekNumber",
-  catchAsync(weeklyPayController.deleteWeeklyPayReport)
+  "/employees/delete-weeklyPay/:weeklyPayIds",
+  catchAsync(weeklyPayController.deleteWeeklyPayReports)
 );
 
 module.exports = router;

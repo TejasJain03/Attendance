@@ -105,9 +105,9 @@ const WeeklyReportPage = () => {
   //   setIsEditModalOpen(true);
   // };
 
-  const handleDelete = (employeeId, weekNumber, month) => {
+  const handleDelete = (weeklyPayIds) => {
     axios
-      .delete(`/employees/${employeeId}/weeklyPay/${month}/${weekNumber}`)
+      .delete(`/employees/delete-weeklyPay/${weeklyPayIds}`) // Ensure data is passed correctly
       .then((response) => {
         console.log("Employee deleted successfully:", response.data);
         toast.success("Record deleted successfully");
@@ -281,9 +281,7 @@ const WeeklyReportPage = () => {
                               Edit
                             </button> */}
                             <button
-                              onClick={() =>
-                                handleDelete(emp.employeeId, weekNumber, month)
-                              }
+                              onClick={() => handleDelete(emp.weeklyPayIds)}
                               className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition duration-300"
                             >
                               <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAJRJREFUSEvtlcENgCAMRfs301GcRJ1MRnGTag8kSoBaAh6UHhvyX/uBFtQ40FifVAAzD0S0JQpZASy5IrMARVx0dyKaALgU5AZgZq5hGc62vM67gBrVhxrROyi16mpN1CKf/BbAtx12FcsXWdQB6jPtFv3AIssAtHw02WCyySzhAIxPp6mIzwZIcrOpO9nSQuxsc8ABQHeaGbkbfj0AAAAASUVORK5CYII=" />{" "}

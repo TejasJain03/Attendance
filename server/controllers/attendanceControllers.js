@@ -193,7 +193,10 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
         (record) => record.attendanceType === "Half Day"
       ).length;
 
-      daysPresent = fullDaysWithoutExtraWork + fullDaysWithExtraWork.length + halfDays * 0.5;
+      daysPresent =
+        fullDaysWithoutExtraWork +
+        fullDaysWithExtraWork.length +
+        halfDays * 0.5;
 
       return {
         employeeId: employee._id,
@@ -225,12 +228,19 @@ exports.getWeeklyAttendanceForAllEmployees = async (req, res) => {
 // Update or mark attendance for an employee on a specific date
 exports.updateDailyAttendance = async (req, res) => {
   const { employeeId, date } = req.params;
-  const { status, attendanceType, extraWorkHours } = req.body; // Now including extraWorkHours
+  const { status, attendanceType, extraWorkHours } = req.body;
   const month = date.slice(0, 7); // Extract the month in "YYYY-MM" format
 
   // Validate the date input
   if (!date) {
     return res.status(400).json({ message: "Date is required" });
+  }
+
+  // Validate extraWorkHours is either 0, 0.5 or 1
+  if (extraWorkHours !== undefined && ![0, 0.5, 1].includes(extraWorkHours)) {
+    return res.status(400).json({
+      message: "Extra work hours must be either 0, 0.5 or 1",
+    });
   }
 
   try {
@@ -243,13 +253,19 @@ exports.updateDailyAttendance = async (req, res) => {
     if (existingAttendance) {
       // If attendance exists, update it
       existingAttendance.status = status;
-      existingAttendance.attendanceType = attendanceType;
+      
+      // Only set attendanceType if status is Present
+      if (status === "Present") {
+        existingAttendance.attendanceType = attendanceType;
+      } else {
+        existingAttendance.attendanceType = "Absent";
+      }
 
       // Handle extra work hours based on the attendance type
-      if (attendanceType === "Full Day" && extraWorkHours) {
-        existingAttendance.extraWorkHours = extraWorkHours;
+      if (attendanceType === "Full Day" && status === "Present") {
+        existingAttendance.extraWorkHours = extraWorkHours || 0;
       } else {
-        existingAttendance.extraWorkHours = null; // Reset extra hours if not full day
+        existingAttendance.extraWorkHours = 0; // Reset extra hours if not full day
       }
 
       await existingAttendance.save();
@@ -262,14 +278,13 @@ exports.updateDailyAttendance = async (req, res) => {
       date,
       status,
       month,
-      attendanceType,
-      extraWorkHours: attendanceType === "Full Day" ? extraWorkHours : null, // Set extra work hours for Full Day
+      attendanceType: status === "Present" ? attendanceType : "Absent",
+      extraWorkHours: (status === "Present" && attendanceType === "Full Day") ? extraWorkHours || 0 : 0,
     });
 
     await newAttendance.save();
     return res.status(201).json(newAttendance);
   } catch (error) {
-    console.error("Error updating attendance:", error);
     return res.status(500).json({ message: "Error updating attendance" });
   }
 };
@@ -435,6 +450,8 @@ exports.getEmployeeAttendanceStatusOnDate = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching employee attendance status:", error);
-    res.status(500).json({ message: "Error fetching employee attendance status" });
+    res
+      .status(500)
+      .json({ message: "Error fetching employee attendance status" });
   }
 };

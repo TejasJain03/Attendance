@@ -1,7 +1,7 @@
 const WeeklyPay = require("../models/weeklyPay");
 const Employee = require("../models/employee");
 const mongoose = require("mongoose");
-const moment=require("moment")
+const moment = require("moment");
 
 exports.createWeeklyPay = async (req, res) => {
   const {
@@ -85,18 +85,20 @@ exports.getWeeklyPayForAllEmployeeWeekAndMonth = async (req, res) => {
   });
 };
 
-
 // Function to get weeks in a given month
 async function getWeeksInMonth(month) {
   const weeks = [];
   const startOfMonth = moment(month, "YYYY-MM").startOf("month");
   const endOfMonth = moment(month, "YYYY-MM").endOf("month");
 
-  let startOfWeek = startOfMonth.clone().startOf("isoWeek"); // Start from the first Monday
+  let startOfWeek = startOfMonth.clone().startOf("week"); // Start from Sunday
   let weekNumber = 1;
 
-  while (startOfWeek.isBefore(endOfMonth) || startOfWeek.isSame(endOfMonth, "day")) {
-    let endOfWeek = startOfWeek.clone().endOf("isoWeek");
+  while (
+    startOfWeek.isBefore(endOfMonth) ||
+    startOfWeek.isSame(endOfMonth, "day")
+  ) {
+    let endOfWeek = startOfWeek.clone().endOf("week"); // End on Saturday
 
     weeks.push({
       week: weekNumber,
@@ -114,7 +116,6 @@ async function getWeeksInMonth(month) {
 
   return weeks;
 }
-// Controller function
 exports.getWeeklyPayForAllEmployees = async (req, res) => {
   try {
     const { month, weekNumber } = req.params;
@@ -124,7 +125,9 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
     // Find the requested week
     const selectedWeek = weeks.find((week) => week.week === weekNum);
     if (!selectedWeek) {
-      return res.status(400).json({ message: "Invalid week number for the given month." });
+      return res
+        .status(400)
+        .json({ message: "Invalid week number for the given month." });
     }
     const { start, end } = selectedWeek;
     console.log(`📆 Fetching weekly pay records from ${start} to ${end}...`);
@@ -132,23 +135,24 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
     // Fetch weekly pay records for all employees in the given week
     const weeklyPays = await WeeklyPay.find({
       $or: [
-        { startDate: { $gt: start, $lt: end } },
-        { endDate: { $gt: start, $lt: end } },
+        { startDate: { $gte: start, $lte: end } },
+        { endDate: { $gte: start, $lte: end } },
       ],
     }).populate("employeeId", "name"); // Populate employee details with name
 
     if (weeklyPays.length === 0) {
       return res.status(200).json({
-        message: "No weekly pay records found for the specified month and week number.",
+        message:
+          "No weekly pay records found for the specified month and week number.",
         records: [],
       });
     }
     // Group records by employeeId
     const employeeRecords = {};
-    
+
     weeklyPays.forEach((record) => {
       const empId = record.employeeId?._id.toString();
-      
+
       if (!employeeRecords[empId]) {
         employeeRecords[empId] = {
           employeeId: empId,
@@ -166,6 +170,7 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
           cash: 0,
           amountDeducted: 0,
           amountPaid: 0,
+          weeklyPayIds: [], // Initialize array to hold weekly pay IDs
         };
       }
       const daysPresent =
@@ -175,13 +180,16 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
 
       employeeRecords[empId].daysPresent += daysPresent || 0;
       employeeRecords[empId].daysAbsent += record.daysAbsent || 0;
-      employeeRecords[empId].fullDaysWithExtraWork += record.fullDaysWithExtraWork?.length || 0;
-      employeeRecords[empId].fullDaysWithoutExtraWork += record.fullDaysWithoutExtraWork || 0;
+      employeeRecords[empId].fullDaysWithExtraWork +=
+        record.fullDaysWithExtraWork?.length || 0;
+      employeeRecords[empId].fullDaysWithoutExtraWork +=
+        record.fullDaysWithoutExtraWork || 0;
       employeeRecords[empId].halfDays += record.halfDays || 0;
       employeeRecords[empId].totalAmount += record.totalAmount || 0;
       employeeRecords[empId].cash = record.cash || 0;
       employeeRecords[empId].amountDeducted += record.amountDeducted || 0;
       employeeRecords[empId].amountPaid += record.amountPaid || 0;
+      employeeRecords[empId].weeklyPayIds.push(record._id); // Add weekly pay ID to the array
     });
     // Convert the grouped data into an array
     const response = Object.values(employeeRecords);
@@ -192,6 +200,7 @@ exports.getWeeklyPayForAllEmployees = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 exports.getWeeklyPayForEmployee = async (req, res) => {
   const { employeeId, month } = req.params;
 
@@ -282,7 +291,8 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
     }
 
     // Adjust total days present by considering half days as 0.5
-    totalDaysPresent = totalExtraWorkDays + totalFullDaysWithoutExtraWork + totalHalfDays * 0.5;
+    totalDaysPresent =
+      totalExtraWorkDays + totalFullDaysWithoutExtraWork + totalHalfDays * 0.5;
 
     // Calculate total loan amount and loan left
     const totalLoan = employee.loan.reduce((sum, loan) => sum + loan.amount, 0); // Sum all loan amounts
@@ -317,23 +327,17 @@ exports.getMonthlyPayReportForAllEmployees = async (req, res) => {
   }
 };
 
-exports.deleteWeeklyPayReport = async (req, res) => {
-  const { weekNumber, employeeId, month } = req.params;
+exports.deleteWeeklyPayReports = async (req, res) => {
+  const { weeklyPayIds } = req.params; // Get the array of weekly pay IDs from the request body
+  const weeklyPayIdsArray = weeklyPayIds.split(","); // Split the comma-separated IDs into an array
+  const deletedRecords = []; // Array to hold the records that would be deleted
 
-  const deletedRecord = await WeeklyPay.findOneAndDelete({
-    employeeId,
-    month,
-    weekNumber,
-  });
-
-  if (!deletedRecord) {
-    return res.status(404).json({
-      message: "Weekly pay record not found.",
-    });
+  for (const id of weeklyPayIdsArray) {
+    await WeeklyPay.deleteOne({ _id: id }); // Delete the record from the database
   }
-
+  // Simulate a response without deleting records
   res.status(200).json({
-    message: "Weekly pay record deleted successfully.",
-    data: deletedRecord,
+    message: "Received weekly pay records for deletion.",
+    receivedCount: data.length, // Return the count of received records
   });
 };

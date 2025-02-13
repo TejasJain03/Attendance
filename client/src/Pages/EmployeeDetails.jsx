@@ -93,11 +93,11 @@ const BasicCalendarExample = () => {
         );
       } else {
         const payload = { status, attendanceType, extraWorkHours }; // Add extraHours to payload
+        
         await axios.put(
           `/employees/${employeeId}/attendance/${formattedDate}`,
           payload
         );
-        console.log(payload);
       }
 
       const response = await axios.get(
@@ -278,6 +278,7 @@ const BasicCalendarExample = () => {
                   onClickDay={handleDayClick}
                   className="w-full border-none shadow-none"
                   showNavigation={false}
+                  
                 />
               )}
             </div>
