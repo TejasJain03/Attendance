@@ -2,7 +2,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "../axios";
 import { calculateSalary } from "../Components/calculateSalary";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import Navbar from "../Components/Navbar";
 
 const PaymentPage = () => {
@@ -62,7 +62,9 @@ const PaymentPage = () => {
         }
         const result = calculateSalary(
           state.employeeSummary,
-          payResponse.data.totalDaysPresent
+          payResponse.data.totalDaysPresent,
+          state.weekStartDate,
+          state.weekEndDate
         );
         setTotalAmount(result);
         setLoanDetails(loanResponse.data.employee.loan || []);
@@ -169,6 +171,7 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <ToastContainer autoClose={500} />
       <Navbar />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">

@@ -15,6 +15,8 @@ const BasicCalendarExample = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false); // To manage delete popup visibility
+  const [submittingAttendance, setSubmittingAttendance] = useState(false);
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [attendanceType, setAttendanceType] = useState("");
   const [editDate, setEditDate] = useState(false);
@@ -87,13 +89,15 @@ const BasicCalendarExample = () => {
   const handleAttendanceUpdate = async (status, attendanceType) => {
     const formattedDate = selectedDate.toISOString().split("T")[0];
     try {
+      setSubmittingAttendance(true);
+
       if (status === "Remove") {
         await axios.delete(
           `/employees/${employeeId}/attendance/${formattedDate}`
         );
       } else {
         const payload = { status, attendanceType, extraWorkHours }; // Add extraHours to payload
-        
+
         await axios.put(
           `/employees/${employeeId}/attendance/${formattedDate}`,
           payload
@@ -109,8 +113,10 @@ const BasicCalendarExample = () => {
       setAttendanceData(response.data.data);
     } catch (error) {
       console.error("Error updating/removing attendance:", error);
+    } finally {
+      setSubmittingAttendance(false);
+      setIsPopupOpen(false);
     }
-    setIsPopupOpen(false);
   };
   const handleDeleteClick = () => {
     setIsDeletePopupOpen(true); // Open delete confirmation popup
@@ -278,7 +284,6 @@ const BasicCalendarExample = () => {
                   onClickDay={handleDayClick}
                   className="w-full border-none shadow-none"
                   showNavigation={false}
-                  
                 />
               )}
             </div>
@@ -307,7 +312,7 @@ const BasicCalendarExample = () => {
                   className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={attendanceType}
                   onChange={(e) => setAttendanceType(e.target.value)}
-                  disabled={editDate}
+                  disabled={editDate || submittingAttendance}
                 >
                   <option value="select">Select</option>
                   <option value="Full Day">Full Day</option>
@@ -329,7 +334,7 @@ const BasicCalendarExample = () => {
                     className="w-full p-2 border border-indigo-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     value={extraWorkHours}
                     onChange={(e) => setExtraWorkHours(e.target.value)}
-                    disabled={editDate}
+                    disabled={editDate || submittingAttendance}
                   >
                     <option value="0">0</option>
                     <option value="0.5">0.5</option>
@@ -344,40 +349,119 @@ const BasicCalendarExample = () => {
                     handleAttendanceUpdate("Present", attendanceType)
                   }
                   className={`${
-                    editDate
+                    editDate || submittingAttendance
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-green-500 hover:bg-green-600"
                   } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                  disabled={editDate}
+                  disabled={editDate || submittingAttendance}
                 >
-                  Present
+                  {submittingAttendance ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : (
+                    "Present"
+                  )}
                 </button>
                 <button
                   onClick={() => handleAttendanceUpdate("Absent")}
                   className={`${
-                    editDate
+                    editDate || submittingAttendance
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-red-500 hover:bg-red-600"
                   } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                  disabled={editDate}
+                  disabled={editDate || submittingAttendance}
                 >
-                  Absent
+                  {submittingAttendance ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : (
+                    "Absent"
+                  )}
                 </button>
                 <button
                   onClick={() => handleAttendanceUpdate("Remove")}
                   className={`${
-                    editDate
+                    editDate || submittingAttendance
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-gray-500 hover:bg-gray-600"
                   } text-white px-6 py-2 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none flex-grow`}
-                  disabled={editDate}
+                  disabled={editDate || submittingAttendance}
                 >
-                  Remove
+                  {submittingAttendance ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : (
+                    "Remove"
+                  )}
                 </button>
                 {editDate && (
                   <button
                     onClick={() => setEditDate(false)}
                     className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-300 ease-in-out focus:outline-none flex-grow"
+                    disabled={submittingAttendance}
                   >
                     Edit
                   </button>
@@ -388,6 +472,7 @@ const BasicCalendarExample = () => {
               <button
                 onClick={() => setIsPopupOpen(false)}
                 className="w-full bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out focus:outline-none"
+                disabled={submittingAttendance}
               >
                 Close
               </button>

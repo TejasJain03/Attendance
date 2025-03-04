@@ -25,7 +25,7 @@ const WeeklyReportPage = () => {
         const response = await axios.get(
           `/employees/weekly-report/${month}/${weekNumber}`
         );
-        console.log(response.data)
+        console.log(response.data);
         setData(response.data);
         setError(null);
       } catch (err) {
@@ -49,12 +49,13 @@ const WeeklyReportPage = () => {
 
   const handlePay = (employeeId, employeeSummary) => {
     const { weekStartDate, weekEndDate, week } = data;
-    console.log(employeeSummary)
+    console.log(employeeSummary);
     navigate(`/admin/${employeeId}/${month}/${weekNumber}`, {
       state: {
         employeeSummary,
         weekStartDate,
         weekEndDate,
+        month,
         week,
       },
     });
